@@ -51,6 +51,8 @@
  * TYPEDEFS
  *############################################################*/
 
+/* Could be in a separate file for OOP. */
+
 typedef struct
 {
     led_strip_handle_t handle;
@@ -60,9 +62,9 @@ typedef struct
         RED,
         GREEN,
         BLUE,
-        NUMBER_OF_LED_STATES
+        NUMBER_OF_STATES
     } state;
-} led_t;
+} led_strip_t;
 
 /*##############################################################
  * CONSTANTS
@@ -74,54 +76,13 @@ static const char *TAG = "ESP32-C6";
  * GLOBAL VARIABLES
  *############################################################*/
 
-static led_t s_led;
+static led_strip_t s_led_strip;
 
 /*##############################################################
  * FUNCTIONS
  *############################################################*/
 
-static void blink_led(void)
-{
-    if (s_led.state == OFF)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"OFF\"!");
-
-        /* Set all LED off to clear all pixels */
-
-        led_strip_clear(s_led.handle);
-    }
-    else if (s_led.state == RED)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"RED\"!");
-
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for
-         * each color. */
-
-        led_strip_set_pixel(s_led.handle, 0, 16, 0, 0);
-
-        /* Refresh the strip to send data. */
-
-        led_strip_refresh(s_led.handle);
-    }
-    else if (s_led.state == GREEN)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"GREEN\"!");
-        led_strip_set_pixel(s_led.handle, 0, 0, 16, 0);
-        led_strip_refresh(s_led.handle);
-    }
-    else if (s_led.state == BLUE)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"BLUE\"!");
-        led_strip_set_pixel(s_led.handle, 0, 0, 0, 16);
-        led_strip_refresh(s_led.handle);
-    }
-    else
-    {
-        ESP_LOGE(TAG, "Invalid LED state.\n");
-    }
-}
-
-static void configure_led(void)
+static void led_strip_configure(void)
 {
     ESP_LOGI(TAG, "Configuring LED.\n");
 
@@ -135,11 +96,60 @@ static void configure_led(void)
         .resolution_hz = 10 * 1000 * 1000, /* 10 MHz. */
         .flags.with_dma = false,
     };
-    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &s_led.handle));
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &s_led_strip.handle));
 
     /* Set all LED off to clear all pixels. */
 
-    led_strip_clear(s_led.handle);
+    s_led_strip.state = OFF;
+    led_strip_clear(s_led_strip.handle);
+}
+
+static void led_strip_cycle(void)
+{
+    /* Set the LED based on its state. */
+
+    if (s_led_strip.state == OFF)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"OFF\"!");
+
+        /* Set all LED off to clear all pixels */
+
+        led_strip_clear(s_led_strip.handle);
+    }
+    else if (s_led_strip.state == RED)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"RED\"!");
+
+        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for
+         * each color. */
+
+        led_strip_set_pixel(s_led_strip.handle, 0, 16, 0, 0);
+
+        /* Refresh the strip to send data. */
+
+        led_strip_refresh(s_led_strip.handle);
+    }
+    else if (s_led_strip.state == GREEN)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"GREEN\"!");
+        led_strip_set_pixel(s_led_strip.handle, 0, 0, 16, 0);
+        led_strip_refresh(s_led_strip.handle);
+    }
+    else if (s_led_strip.state == BLUE)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"BLUE\"!");
+        led_strip_set_pixel(s_led_strip.handle, 0, 0, 0, 16);
+        led_strip_refresh(s_led_strip.handle);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Invalid LED state.\n");
+    }
+
+    /* Cycle the LED state. */
+
+    s_led_strip.state++;
+    s_led_strip.state %= NUMBER_OF_STATES;
 }
 
 /*##############################################################
@@ -177,16 +187,13 @@ void app_main(void)
 
     /* Configure the LED. */
 
-    s_led.state = OFF;
-    configure_led();
+    led_strip_configure();
 
-    /* Change the LED color. */
+    /* Cycle the LED color. */
 
     while (1)
     {
-        blink_led();
-        s_led.state++;
-        s_led.state %= NUMBER_OF_LED_STATES;
+        led_strip_cycle();
         vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
     }
 }
