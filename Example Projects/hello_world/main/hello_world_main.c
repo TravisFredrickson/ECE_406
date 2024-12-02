@@ -1,155 +1,52 @@
-/*##############################################################
- * FILE INFO
- *############################################################*/
+/*
+ * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ */
 
-/* Author: Travis Fredrickson. */
-/* Date: 2024-12-01. */
-/* Description: Does something on an ESP32-C6-DevKitC-1-N8. */
-
-/*##############################################################
- * INCLUDES
- *############################################################*/
-
-/*==============================================================
- * Standard includes.
- *============================================================*/
-
-// #include <inttypes.h>
 #include <stdio.h>
-
-/*==============================================================
- * ESP includes.
- *============================================================*/
-
-// #include "driver/gpio.h"
+#include <inttypes.h>
+#include "sdkconfig.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
-#include "esp_log.h"
 #include "esp_system.h"
-#include "led_strip.h"
-#include "sdkconfig.h"
-
-/*==============================================================
- * FreeRTOS includes.
- *============================================================*/
-
-// #include "freertos/FreeRTOS.h"
-// #include "freertos/task.h"
-
-/*##############################################################
- * DEFINES
- *############################################################*/
-
-#define CONFIG_ENV_GPIO_RANGE_MIN 0
-#define CONFIG_ENV_GPIO_RANGE_MAX 30
-#define CONFIG_ENV_GPIO_IN_RANGE_MAX 30
-#define CONFIG_ENV_GPIO_OUT_RANGE_MAX 30
-#define CONFIG_BLINK_GPIO 8
-#define CONFIG_BLINK_PERIOD 2000
-
-/*##############################################################
- * CONSTANTS
- *############################################################*/
-
-static const char *TAG = "ESP32-C6";
-
-static uint8_t s_led_state = 0;
-
-/*##############################################################
- * GLOBAL VARIABLES
- *############################################################*/
-
-/*##############################################################
- * FUNCTIONS
- *############################################################*/
-
-
-static led_strip_handle_t led_strip;
-
-static void blink_led(void)
-{
-    /* If the LED is enabled. */
-
-    if (s_led_state) {
-
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color. */
-
-        led_strip_set_pixel(led_strip, 0, 16, 16, 16);
-
-        /* Refresh the strip to send data. */
-
-        led_strip_refresh(led_strip);
-    } else {
-
-        /* Set all LED off to clear all pixels. */
-
-        led_strip_clear(led_strip);
-    }
-}
-
-static void configure_led(void)
-{
-    ESP_LOGI(TAG, "Configuring LED.\n");
-
-    /* LED strip initialization with the GPIO and pixels number. */
-
-    led_strip_config_t strip_config = {
-        .strip_gpio_num = CONFIG_BLINK_GPIO,
-        .max_leds = 1, // At least one LED on board.
-    };
-    led_strip_rmt_config_t rmt_config = {
-        .resolution_hz = 10 * 1000 * 1000, // 10 MHz.
-        .flags.with_dma = false,
-    };
-    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
-
-    /* Set all LED off to clear all pixels. */
-
-    led_strip_clear(led_strip);
-}
-
-/*##############################################################
- * MAIN
- *############################################################*/
 
 void app_main(void)
 {
-    printf("Booting up.\n");
+    printf("Hello world!\n");
 
-    /* Print chip information. */
-
+    /* Print chip information */
     esp_chip_info_t chip_info;
     uint32_t flash_size;
     esp_chip_info(&chip_info);
-    printf("This is %s chip with:\n", CONFIG_IDF_TARGET);
-    printf("\t- %d CPU core(s).\n", chip_info.cores);
-    printf("\t- %s%s%s.\n",
-        (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "Wi-Fi/" : "",
-        (chip_info.features & CHIP_FEATURE_BT) ? "BT" : "",
-        (chip_info.features & CHIP_FEATURE_BLE) ? "BLE" : "");
-    printf("\t- %s.\n",
-        (chip_info.features & CHIP_FEATURE_IEEE802154) ? "802.15.4 (Zigbee/Thread)" : "");
+    printf("This is %s chip with %d CPU core(s), %s%s%s%s, ",
+           CONFIG_IDF_TARGET,
+           chip_info.cores,
+           (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "WiFi/" : "",
+           (chip_info.features & CHIP_FEATURE_BT) ? "BT" : "",
+           (chip_info.features & CHIP_FEATURE_BLE) ? "BLE" : "",
+           (chip_info.features & CHIP_FEATURE_IEEE802154) ? ", 802.15.4 (Zigbee/Thread)" : "");
+
     unsigned major_rev = chip_info.revision / 100;
     unsigned minor_rev = chip_info.revision % 100;
-    printf("\t- Silicon revision v%d.%d.\n", major_rev, minor_rev);
+    printf("silicon revision v%d.%d, ", major_rev, minor_rev);
     if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
-        printf("Get flash size failed.");
+        printf("Get flash size failed");
         return;
     }
-    printf("\t- %" PRIu32 " MB %s flash.\n", flash_size / (uint32_t)(1024 * 1024),
-        (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
-    printf("\t- Minimum free heap size: %" PRIu32 " bytes.\n", esp_get_minimum_free_heap_size());
 
-    /* Configure the LED. */
+    printf("%" PRIu32 "MB %s flash\n", flash_size / (uint32_t)(1024 * 1024),
+           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
 
-    configure_led();
+    printf("Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
 
-    /* Toggle the LED. */
-
-    while (1) {
-        ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
-        blink_led();
-        s_led_state = !s_led_state;
-        vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
+    for (int i = 10; i >= 0; i--) {
+        printf("Restarting in %d seconds...\n", i);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
+    printf("Restarting now.\n");
+    fflush(stdout);
+    esp_restart();
 }
