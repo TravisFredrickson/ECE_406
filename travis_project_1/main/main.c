@@ -48,16 +48,33 @@
 #define CONFIG_BLINK_PERIOD 2000
 
 /*##############################################################
+ * TYPEDEFS
+ *############################################################*/
+
+typedef struct
+{
+    led_strip_handle_t handle;
+    enum
+    {
+        OFF,
+        RED,
+        GREEN,
+        BLUE,
+        NUMBER_OF_LED_STATES
+    } state;
+} led_t;
+
+/*##############################################################
  * CONSTANTS
  *############################################################*/
 
-static led_strip_handle_t led_strip;
-static uint8_t s_led_state = 0;
 static const char *TAG = "ESP32-C6";
 
 /*##############################################################
  * GLOBAL VARIABLES
  *############################################################*/
+
+static led_t s_led;
 
 /*##############################################################
  * FUNCTIONS
@@ -65,22 +82,42 @@ static const char *TAG = "ESP32-C6";
 
 static void blink_led(void)
 {
-    /* If the LED is enabled. */
+    if (s_led.state == OFF)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"OFF\"!");
 
-    if (s_led_state) {
+        /* Set all LED off to clear all pixels */
 
-        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color. */
+        led_strip_clear(s_led.handle);
+    }
+    else if (s_led.state == RED)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"RED\"!");
 
-        led_strip_set_pixel(led_strip, 0, 16, 16, 16);
+        /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for
+         * each color. */
+
+        led_strip_set_pixel(s_led.handle, 0, 16, 0, 0);
 
         /* Refresh the strip to send data. */
 
-        led_strip_refresh(led_strip);
-    } else {
-
-        /* Set all LED off to clear all pixels. */
-
-        led_strip_clear(led_strip);
+        led_strip_refresh(s_led.handle);
+    }
+    else if (s_led.state == GREEN)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"GREEN\"!");
+        led_strip_set_pixel(s_led.handle, 0, 0, 16, 0);
+        led_strip_refresh(s_led.handle);
+    }
+    else if (s_led.state == BLUE)
+    {
+        ESP_LOGI(TAG, "Turning the LED \"BLUE\"!");
+        led_strip_set_pixel(s_led.handle, 0, 0, 0, 16);
+        led_strip_refresh(s_led.handle);
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Invalid LED state.\n");
     }
 }
 
@@ -98,11 +135,11 @@ static void configure_led(void)
         .resolution_hz = 10 * 1000 * 1000, /* 10 MHz. */
         .flags.with_dma = false,
     };
-    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &led_strip));
+    ESP_ERROR_CHECK(led_strip_new_rmt_device(&strip_config, &rmt_config, &s_led.handle));
 
     /* Set all LED off to clear all pixels. */
 
-    led_strip_clear(led_strip);
+    led_strip_clear(s_led.handle);
 }
 
 /*##############################################################
@@ -121,32 +158,35 @@ void app_main(void)
     printf("This is %s chip with:\n", CONFIG_IDF_TARGET);
     printf("\t- %d CPU core(s).\n", chip_info.cores);
     printf("\t- %s%s%s.\n",
-        (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "Wi-Fi/" : "",
-        (chip_info.features & CHIP_FEATURE_BT) ? "BT" : "",
-        (chip_info.features & CHIP_FEATURE_BLE) ? "BLE" : "");
+           (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "Wi-Fi/" : "",
+           (chip_info.features & CHIP_FEATURE_BT) ? "BT" : "",
+           (chip_info.features & CHIP_FEATURE_BLE) ? "BLE" : "");
     printf("\t- %s.\n",
-        (chip_info.features & CHIP_FEATURE_IEEE802154) ? "802.15.4 (Zigbee/Thread)" : "");
+           (chip_info.features & CHIP_FEATURE_IEEE802154) ? "802.15.4 (Zigbee/Thread)" : "");
     unsigned major_rev = chip_info.revision / 100;
     unsigned minor_rev = chip_info.revision % 100;
     printf("\t- Silicon revision v%d.%d.\n", major_rev, minor_rev);
-    if(esp_flash_get_size(NULL, &flash_size) != ESP_OK) {
+    if (esp_flash_get_size(NULL, &flash_size) != ESP_OK)
+    {
         printf("Get flash size failed.");
         return;
     }
     printf("\t- %" PRIu32 " MB %s flash.\n", flash_size / (uint32_t)(1024 * 1024),
-        (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+           (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
     printf("\t- Minimum free heap size: %" PRIu32 " bytes.\n", esp_get_minimum_free_heap_size());
 
     /* Configure the LED. */
 
+    s_led.state = OFF;
     configure_led();
 
-    /* Toggle the LED. */
+    /* Change the LED color. */
 
-    while (1) {
-        ESP_LOGI(TAG, "Turning the LED %s!", s_led_state == true ? "ON" : "OFF");
+    while (1)
+    {
         blink_led();
-        s_led_state = !s_led_state;
+        s_led.state++;
+        s_led.state %= NUMBER_OF_LED_STATES;
         vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
     }
 }
