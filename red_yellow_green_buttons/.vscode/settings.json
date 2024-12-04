@@ -18,7 +18,22 @@
     "esp_rom_gpio.h": "c",
     "esp_system.h": "c",
     "button.h": "c",
-    "esp_chip_info.h": "c"
+    "esp_chip_info.h": "c",
+    "queue.h": "c",
+    "esp_timer.h": "c",
+    "cstdint": "c",
+    "atomic": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "vector": "cpp",
+    "fstream": "cpp",
+    "limits": "cpp",
+    "sstream": "cpp",
+    "system_error": "cpp",
+    "task.h": "c",
+    "esp_flash.h": "c"
   },
   "idf.flashType": "UART"
 }

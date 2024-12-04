@@ -15,7 +15,7 @@
  *============================================================*/
 
 // #include <inttypes.h>
-#include <math.h>
+// #include <math.h>
 #include <stdio.h>
 
 /*==============================================================
@@ -34,9 +34,9 @@
  * FreeRTOS.
  *============================================================*/
 
-// #include "freertos/FreeRTOS.h"
-// #include "freertos/queue.h"
-// #include "freertos/task.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 
 /*==============================================================
  * User.
@@ -48,8 +48,8 @@
  * DEFINES
  *############################################################*/
 
-#define MAIN_DELAY_PERIOD_MS 1000
-#define DEBOUNCE_DELAY_PERIOD_MS 100
+#define DELAY_PERIOD_MS 1000
+#define TAG "MAIN"
 
 /*==============================================================
  * LED.
@@ -81,8 +81,9 @@ typedef struct
     led_strip_handle_t handle;
     enum
     {
-        OFF,
+        OFF = 0,
         RED,
+        YELLOW,
         GREEN,
         BLUE,
         LED_STATE_COUNT
@@ -92,8 +93,6 @@ typedef struct
 /*##############################################################
  * CONSTANTS
  *############################################################*/
-
-static const char *TAG = "ESP32-C6";
 
 /*##############################################################
  * GLOBAL VARIABLES
@@ -168,37 +167,40 @@ static void led_strip_configure(void)
 
 static void led_strip_set(void)
 {
-    /* Set the LED based on its state. */
-    if (s_led_strip.state == OFF)
+    switch (s_led_strip.state)
     {
-        ESP_LOGI(TAG, "Turning the LED \"OFF\"!");
-        /* Set all LED off to clear all pixels. */
-        led_strip_clear(s_led_strip.handle);
-    }
-    else if (s_led_strip.state == RED)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"RED\"!");
+    case RED:
+        ESP_LOGI(TAG, "Turning the LED RED.");
         /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for
          * each color. */
         led_strip_set_pixel(s_led_strip.handle, 0, 16, 0, 0);
         /* Refresh the strip to send data. */
         led_strip_refresh(s_led_strip.handle);
-    }
-    else if (s_led_strip.state == GREEN)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"GREEN\"!");
+        break;
+    case YELLOW:
+        ESP_LOGI(TAG, "Turning the LED YELLOW.");
+        led_strip_set_pixel(s_led_strip.handle, 0, 16, 8, 0);
+        led_strip_refresh(s_led_strip.handle);
+        break;
+    case GREEN:
+        ESP_LOGI(TAG, "Turning the LED GREEN.");
         led_strip_set_pixel(s_led_strip.handle, 0, 0, 16, 0);
         led_strip_refresh(s_led_strip.handle);
-    }
-    else if (s_led_strip.state == BLUE)
-    {
-        ESP_LOGI(TAG, "Turning the LED \"BLUE\"!");
+        break;
+    case BLUE:
+        ESP_LOGI(TAG, "Turning the LED BLUE.");
         led_strip_set_pixel(s_led_strip.handle, 0, 0, 0, 16);
         led_strip_refresh(s_led_strip.handle);
-    }
-    else
-    {
+        break;
+    case OFF:
+        ESP_LOGI(TAG, "Turning the LED OFF.");
+        /* Set all LED off to clear all pixels. */
+        led_strip_clear(s_led_strip.handle);
+        break;
+    default:
         ESP_LOGE(TAG, "Invalid LED state.\n");
+        led_strip_clear(s_led_strip.handle);
+        break;
     }
 }
 
@@ -206,22 +208,25 @@ static void led_strip_set(void)
  * GPIO.
  *============================================================*/
 
+/* This code is unused, but left to demonstrate how tasks and 
+ * ISRs can be used. */
+
 static void gpio_configure(void)
 {
     /* Zero-initialize the config structure. */
-    gpio_config_t io_config = {};
+    gpio_config_t io_conf = {};
     /* Interrupt on a falling edge. */
-    io_config.intr_type = GPIO_INTR_NEGEDGE;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
     /* Bit mask of the pins. */
-    io_config.pin_bit_mask = GPIO_INPUT_PIN_SEL;
+    io_conf.pin_bit_mask = GPIO_INPUT_PIN_SEL;
     /* Set as input mode. */
-    io_config.mode = GPIO_MODE_INPUT;
+    io_conf.mode = GPIO_MODE_INPUT;
     /* Enable pull-up mode. */
-    io_config.pull_up_en = 1;
+    io_conf.pull_up_en = 1;
     /* Configure. */
-    gpio_config(&io_config);
+    gpio_config(&io_conf);
     /* Print GPIO configuration. */
-    // gpio_dump_io_configuration(stdout, ((int)pow(2, GPIO_PIN_COUNT) - 1));
+    gpio_dump_io_configuration(stdout, ((int)pow(2, GPIO_PIN_COUNT) - 1));
     /* Create a queue to handle GPIO event from ISR. */
     gpio_event_queue = xQueueCreate(10, sizeof(uint32_t));
     /* Start GPIO task. */
@@ -241,21 +246,12 @@ static void IRAM_ATTR gpio_isr_handler(void *arg)
 static void gpio_task_example(void *arg)
 {
     uint32_t gpio_num;
-    while (1)
+    for (;;)
     {
         /* Transfer from queue to buffer. */
-        if (xQueueReceive(gpio_event_queue, &gpio_num, portMAX_DELAY))
+        if (xQueueReceive(gpio_event_queue, &gpio_num, DELAY_PERIOD_MS / portTICK_PERIOD_MS))
         {
             printf("GPIO[%" PRIu32 "]: Interrupt; Value = %d.\n", gpio_num, gpio_get_level(gpio_num));
-        }
-        /* If input has been held down. */
-        // if()
-        {
-            count++;
-            ESP_LOGI(TAG, "count = %d.", count);
-            s_led_strip.state++;
-            s_led_strip.state %= LED_STATE_COUNT;
-            led_strip_set();
         }
     }
 }
@@ -266,28 +262,39 @@ static void gpio_task_example(void *arg)
 
 void app_main(void)
 {
+    /* Initalize and configure. */
     print_chip_information();
     led_strip_configure();
-    // gpio_configure();
-
     button_event_t button_event;
-    // QueueHandle_t button_events = button_init(PIN_BIT(4));
-    QueueHandle_t button_events = pulled_button_init(PIN_BIT(4), GPIO_PULLUP_ONLY);
+    QueueHandle_t button_events = pulled_button_init(
+        (PIN_BIT(4) | PIN_BIT(5) | PIN_BIT(6)), GPIO_PULLUP_ONLY);
 
     /* Main loop. */
-    while (1)
+    for (;;)
     {
-        if (xQueueReceive(button_events, &button_event, MAIN_DELAY_PERIOD_MS / portTICK_PERIOD_MS))
+        if (xQueueReceive(button_events, &button_event, DELAY_PERIOD_MS / portTICK_PERIOD_MS))
         {
-            if ((button_event.pin == 5) && (button_event.event == BUTTON_DOWN))
+            if ((button_event.pin == 4) && (button_event.event == BUTTON_DOWN))
             {
                 count++;
                 ESP_LOGI(TAG, "count = %d.", count);
-                s_led_strip.state++;
-                s_led_strip.state %= LED_STATE_COUNT;
+                s_led_strip.state = GREEN;
+                led_strip_set();
+            }
+            else if ((button_event.pin == 5) && (button_event.event == BUTTON_DOWN))
+            {
+                count++;
+                ESP_LOGI(TAG, "count = %d.", count);
+                s_led_strip.state = YELLOW;
+                led_strip_set();
+            }
+            else if ((button_event.pin == 6) && (button_event.event == BUTTON_DOWN))
+            {
+                count++;
+                ESP_LOGI(TAG, "count = %d.", count);
+                s_led_strip.state = RED;
                 led_strip_set();
             }
         }
-        // vTaskDelay(MAIN_DELAY_PERIOD_MS / portTICK_PERIOD_MS);
     }
 }
