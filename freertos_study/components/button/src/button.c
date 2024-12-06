@@ -12,7 +12,7 @@
 
 #include "button.h"
 
-#define TAG "BUTTON"
+#define TAG "button"
 
 typedef struct
 {

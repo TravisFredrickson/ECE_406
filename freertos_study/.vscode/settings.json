@@ -34,7 +34,9 @@
     "system_error": "cpp",
     "task.h": "c",
     "esp_flash.h": "c",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "esp_log.h": "c",
+    "esp_task_wdt.h": "c"
   },
   "idf.flashType": "UART"
 }
