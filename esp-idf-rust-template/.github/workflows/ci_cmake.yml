@@ -1,0 +1,95 @@
+name: CMake CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "cmake/**"
+      - ".github/workflows/ci_cmake.yml"
+  pull_request:
+    paths:
+      - "cmake/**"
+      - ".github/workflows/ci_cmake.yml"
+  schedule:
+    - cron: "50 7 * * *"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  cmake-checks:
+    name: "${{ matrix.target.mcu }} | ${{ matrix.esp-idf.version }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - mcu: "esp32"
+            toolchain: "esp"
+          - mcu: "esp32s2"
+            toolchain: "esp"
+          - mcu: "esp32s3"
+            toolchain: "esp"
+          - mcu: "esp32c3"
+            toolchain: "nightly"
+          - mcu: "esp32c2"
+            toolchain: "nightly"
+          - mcu: "esp32c6"
+            toolchain: "nightly"
+          - mcu: "esp32h2"
+            toolchain: "nightly"
+        esp-idf:
+          - version: v5.2
+          # - version: master
+          #   name: master
+    steps:
+      - name: Setup | Rust (RISC-V)
+        if: matrix.target.mcu != 'esp32' && matrix.target.mcu != 'esp32s2' && matrix.target.mcu != 'esp32s3'
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: nightly
+          components: clippy, rustfmt, rust-src
+      - name: Setup | Rust (Xtensa)
+        if: matrix.target.mcu == 'esp32' || matrix.target.mcu == 'esp32s2' || matrix.target.mcu == 'esp32s3'
+        uses: esp-rs/xtensa-toolchain@v1.5.3
+        with:
+          default: true
+          buildtargets: ${{ matrix.target.mcu }}
+          ldproxy: false
+      - uses: Swatinem/rust-cache@v2
+      - name: Setup | cargo-generate (binary)
+        id: cargo-generate-binary
+        continue-on-error: true
+        run: |
+          sudo curl -L "https://github.com/cargo-generate/cargo-generate/releases/latest/download/cargo-generate-$(git ls-remote --refs --sort="version:refname" --tags "https://github.com/cargo-generate/cargo-generate" | cut -d/ -f3- | tail -n1)-x86_64-unknown-linux-gnu.tar.gz" -o "/home/runner/.cargo/bin/cargo-generate.tar.gz"
+          tar xf "/home/runner/.cargo/bin/cargo-generate.tar.gz" -C /home/runner/.cargo/bin
+          chmod u+x /home/runner/.cargo/bin/cargo-generate
+      - name: Setup | cargo-generate (cargo)
+        if: steps.cargo-generate-binary.outcome != 'success'
+        run: cargo install cargo-generate
+      - name: Setup | ldproxy (binary)
+        id: ldproxy-binary
+        continue-on-error: true
+        run: |
+          sudo curl -L "https://github.com/esp-rs/embuild/releases/latest/download/ldproxy-x86_64-unknown-linux-gnu.zip" -o "/home/runner/.cargo/bin/ldproxy.zip"
+          unzip "/home/runner/.cargo/bin/ldproxy.zip" -d "/home/runner/.cargo/bin/"
+          chmod u+x /home/runner/.cargo/bin/ldproxy
+      - name: Setup | ldproxy (cargo)
+        if: steps.ldproxy-binary.outcome != 'success'
+        run: cargo install ldproxy
+      - uses: actions/checkout@v4
+        with:
+          path: /home/runner/work/esp-idf-template/esp-idf-template/github-esp-idf-template
+      - name: Generate
+        run: cargo generate --path /home/runner/work/esp-idf-template/esp-idf-template/github-esp-idf-template cmake --name test --vcs none --silent -d toolchain=${{ matrix.target.toolchain }} -d espidfver=${{ matrix.esp-idf.version }}
+      - name: ESP-IDF | Checkout
+        run: git clone https://github.com/espressif/esp-idf; git -C esp-idf checkout ${{ matrix.esp-idf.version }}
+      - name: ESP-IDF | Install Tooling
+        run: esp-idf/install.sh
+      - name: Build | Set Target
+        run: . esp-idf/export.sh; cd test; idf.py set-target ${{ matrix.target.mcu }}
+      - name: Build | Compile
+        run: . esp-idf/export.sh; cd test; idf.py build
