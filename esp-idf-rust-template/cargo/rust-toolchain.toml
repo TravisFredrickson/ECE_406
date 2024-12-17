@@ -1,7 +1,0 @@
-[toolchain]
-{% if arch == "riscv" -%}
-channel = "nightly"
-components = ["rust-src"]
-{% else -%}
-channel = "esp"
-{% endif %}
