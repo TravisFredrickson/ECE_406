@@ -16,6 +16,7 @@
 
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
+from PyQt6.QtSerialPort import *
 from PyQt6.QtWidgets import *
 
 #===============================================================
@@ -49,31 +50,31 @@ class window(QMainWindow):
         # Set the window title and icon.
         #---------------------------------------------------------------
 
-        self.setWindowTitle('GUI Window')
-        self.setWindowIcon(QIcon('python.png'))
+        self.setWindowTitle("GUI Window")
+        self.setWindowIcon(QIcon("python.png"))
 
         #---------------------------------------------------------------
-        # Create GUI items.
+        # Create items.
         #---------------------------------------------------------------
 
         self.QComboBox_port = QComboBox()
-        self.QComboBox_port.addItems(['No ports.'])
+        self.QComboBox_port.addItems(["No ports."])
 
-        self.QLabel_left_top = QLabel('Settings')
-        self.QLabel_left_bottom = QLabel('Status')
-        self.QLabel_right_top = QLabel('Buttons')
-        self.QLabel_right_bottom = QLabel('Terminal')
+        self.QLabel_left_top = QLabel("Settings")
+        self.QLabel_left_bottom = QLabel("Status")
+        self.QLabel_right_top = QLabel("Buttons")
+        self.QLabel_right_bottom = QLabel("Terminal")
 
-        self.QLabel_command = QLabel('Command')
-        self.QLabel_port = QLabel('Port')
+        self.QLabel_command = QLabel("Command")
+        self.QLabel_port = QLabel("Port")
 
         self.QLineEdit_command = QLineEdit()
 
-        self.QPushButton_connect = QPushButton('Connect')
-        self.QPushButton_send_command = QPushButton('Send Command')
-        self.QPushButton_refresh_ports = QPushButton('Refresh Ports')
+        self.QPushButton_connect = QPushButton("Connect")
+        self.QPushButton_send_command = QPushButton("Send Command")
+        self.QPushButton_refresh_ports = QPushButton("Refresh Ports")
 
-        self.QTextEdit_status = QTextEdit('Disconnected.')
+        self.QTextEdit_status = QTextEdit("Disconnected.")
         self.QTextEdit_status.setReadOnly(True)
         self.QTextEdit_console = QTextEdit()
         self.QTextEdit_console.setReadOnly(True)
@@ -93,13 +94,13 @@ class window(QMainWindow):
         #---------------------------------------------------------------
 
         self.QLayout_main = QGridLayout()
-        self.QLayout_left_top = QVBoxLayout()
+        self.QLayout_left_top = QGridLayout()
         self.QLayout_left_bottom = QGridLayout()
         self.QLayout_right_top = QGridLayout()
-        self.QLayout_right_bottom = QVBoxLayout()
+        self.QLayout_right_bottom = QGridLayout()
 
         #---------------------------------------------------------------
-        # Add items to layouts.
+        # Add widgets to layouts.
         #---------------------------------------------------------------
 
         self.QLayout_main.addWidget(self.QLabel_left_top, 0, 0)
@@ -115,8 +116,7 @@ class window(QMainWindow):
         self.QLayout_left_top.addWidget(self.QPushButton_refresh_ports)
         self.QLayout_left_top.addWidget(self.QComboBox_port)
         self.QLayout_left_top.addWidget(self.QPushButton_connect)
-
-        self.QLayout_left_bottom.addWidget(self.QTextEdit_status, 0, 0, 1, 2)
+        self.QLayout_left_top.addWidget(self.QTextEdit_status)
 
         self.QLayout_right_bottom.addWidget(self.QTextEdit_console)
         self.QLayout_right_bottom.addWidget(self.QLabel_command)
@@ -145,6 +145,7 @@ class window(QMainWindow):
 
         size_1 = 32
         size_2 = 64
+        size_3 = 256
 
         self.QComboBox_port.setFixedHeight(size_1)
         self.QComboBox_port.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -157,7 +158,7 @@ class window(QMainWindow):
         self.QPushButton_send_command.setCursor(Qt.CursorShape.PointingHandCursor)
         self.QPushButton_refresh_ports.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        self.QTextEdit_console.setMinimumHeight(size_2 * 4)
+        self.QTextEdit_console.setFixedHeight(size_3)
         self.QTextEdit_status.setFixedHeight(size_2)
 
         #---------------------------------------------------------------
@@ -177,8 +178,6 @@ class window(QMainWindow):
     def refresh_ports(self):
         # Search for ports.
         ports = serial.tools.list_ports.comports()
-        self.QTextEdit_status.clear()
-        self.QTextEdit_status.insertPlainText('Refreshing ports...')
 
         # Update port drop down list in GUI.
         self.QComboBox_port.clear()
@@ -190,7 +189,7 @@ class window(QMainWindow):
 
         # Update status text box with number of ports found.
         self.QTextEdit_status.clear()
-        self.QTextEdit_status.insertPlainText(f'Found {len(ports)} ports.')
+        self.QTextEdit_status.insertPlainText(f"Found {len(ports)} ports.")
 
     #===============================================================
     # Connect to port.
@@ -199,9 +198,9 @@ class window(QMainWindow):
     def connect_to_port(self):
         # Get port selected by user.
         selected_port_name = self.QComboBox_port.currentText()
-        if selected_port_name == 'No ports.':
+        if selected_port_name == "No ports.":
             self.QTextEdit_status.clear()
-            self.QTextEdit_status.insertPlainText('No ports connected.')
+            self.QTextEdit_status.insertPlainText("No ports connected.")
             return
 
         # Check if selected port is still available.
@@ -209,12 +208,12 @@ class window(QMainWindow):
         selected_port_index = self.QComboBox_port.findText(selected_port_name)
         if selected_port_index == -1:
             self.QTextEdit_status.clear()
-            self.QTextEdit_status.insertPlainText(f'{selected_port_name} not connected.')
+            self.QTextEdit_status.insertPlainText(f"{selected_port_name} not connected.")
             return
         else:
             self.QComboBox_port.setCurrentIndex(selected_port_index)
             self.QTextEdit_status.clear()
-            self.QTextEdit_status.insertPlainText(f'Connecting to port {selected_port_name}.')
+            self.QTextEdit_status.insertPlainText(f"Connecting to port \"{selected_port_name}\".")
 
         # Connect to device.
         # Not sure if this "searching for port" loop is the best way.
@@ -228,13 +227,13 @@ class window(QMainWindow):
                 self.serial.open()
 
         self.QTextEdit_status.clear()
-        self.QTextEdit_status.insertPlainText(f'Connecting to port {selected_port_name}...')
+        self.QTextEdit_status.insertPlainText(f"Connecting to port \"{selected_port_name}\"...")
 
         # Sleep to let device settle.
         # self.sleep_two_seconds()
 
         self.QTextEdit_status.clear()
-        self.QTextEdit_status.insertPlainText(f'Connected to port {selected_port_name}.')
+        self.QTextEdit_status.insertPlainText(f"Connected to port \"{selected_port_name}\".")
 
     #===============================================================
     # Sleep for two seconds.
@@ -258,13 +257,13 @@ class window(QMainWindow):
             self.serial.inWaiting()
         except:
             self.QTextEdit_status.clear()
-            self.QTextEdit_status.insertPlainText('No ports connected.')
+            self.QTextEdit_status.insertPlainText("No ports connected.")
             return
 
         # Check if command is empty.
-        if command == '':
+        if command == "":
             self.QTextEdit_status.clear()
-            self.QTextEdit_status.insertPlainText('Command is empty.')
+            self.QTextEdit_status.insertPlainText("Command is empty.")
             return
 
         # Disable GUI.
@@ -272,9 +271,9 @@ class window(QMainWindow):
         self.repaint()
         
         # Send command.
-        self.QTextEdit_console.insertPlainText(f'{command}\n')
+        self.QTextEdit_console.insertPlainText(f"{command}\n")
         self.repaint()
-        self.serial.write(command.encode('utf-8'))
+        self.serial.write(command.encode("utf-8"))
 
         # Re-enable GUI.
         self.QWidget_main.setDisabled(False)
