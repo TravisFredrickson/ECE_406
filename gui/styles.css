@@ -5,7 +5,7 @@
 QWidget {
     background-color: "#ccc";
     border: 2px solid "#444";
-    border-radius: 8px;
+    border-radius: 0px;
     color: "#000";
     font: bold 16px "Courier New";
 }
@@ -16,7 +16,6 @@ QWidget {
 
 QComboBox {
     background-color: "#fff";
-    border: none;
 }
 
 QComboBox:hover {
@@ -29,7 +28,6 @@ QLabel {
 
 QLineEdit {
     background-color: "#fff";
-    border: none;
 }
 
 QLineEdit:hover {
@@ -38,7 +36,6 @@ QLineEdit:hover {
 
 QPushButton {
     background-color: "#fff";
-    border: none;
 }
 
 QPushButton:hover {
@@ -55,10 +52,4 @@ QPushButton:disabled {
 
 QTextEdit {
     background-color: "#fff";
-    border: none;
 }
-
-/*
-QTextEdit:hover {
-}
-*/
