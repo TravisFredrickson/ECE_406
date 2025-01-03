@@ -1,0 +1,15 @@
+# Added based on "https://github.com/rust-lang/rust/issues/28924#issuecomment-442260036".
+# Had to create this file, it was not already here. Not sure if this is the correct place or if it will work.
+# Not sure if what I wrote is correct.
+# ESP32-C6 architecture is "riscv32imac-esp-espidf".
+
+# [target.riscv32-esp-elf]
+# [target.riscv32imac-esp-espidf]
+# [target.nightly-x86_64-unknown-linux-gnu]
+# [target.x86_64-unknown-linux-gnu]
+# linker = "/home/travis/.espressif/tools/riscv32-esp-elf/esp-13.2.0_20240530/riscv32-esp-elf/bin/riscv32-esp-elf-gcc"
+
+# Added based on "https://docs.esp-rs.org/book/installation/riscv.html".
+
+# -Z build-std
+

@@ -1,9 +1,0 @@
-language = "C"
-
-[parse]
-include = ["my_rust_package"]
-
-[parse.expand]
-crates = ["my_rust_package"]
-# features = ["cbindgen"]
-

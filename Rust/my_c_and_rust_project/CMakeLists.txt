@@ -4,18 +4,19 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.16)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(main)
+project(my_project)
 
-# Method 1.
+# Method 1: Corrosion.
 
+set(Rust_CARGO_TARGET riscv32imac-esp-espidf) # Added because of a warning.
 find_package(Corrosion REQUIRED)
-corrosion_import_crate(MANIFEST_PATH "/home/travis/ECE406/my_rust_package_folder/Cargo.toml")
-# add_executable(${PACKAGE_NAME} "/home/travis/ECE406/sample_project/main/main.c")
-target_link_libraries(${PACKAGE_NAME} my_rust_package)
+corrosion_import_crate(MANIFEST_PATH "/home/travis/ECE_406/Rust/my_rust_folder/Cargo.toml") # Creates target "my_rust_package".
+add_executable(my_target "main/main.c")
+target_link_libraries(my_target PUBLIC my_rust_package)
 
-# Method 2.
+# Method 2: Manual.
 
-# set(MY_RUST_PATH /home/travis/ECE406/my_rust_package_folder/target/debug/libmy_rust_package.a)
 # add_library(my_rust_package STATIC IMPORTED)
-# set_target_properties(my_rust_package PROPERTIES IMPORTED_LOCATION MY_RUST_PATH)
-# target_link_libraries(${PACKAGE_NAME} my_rust_package)
+# set_target_properties(my_rust_package PROPERTIES IMPORTED_LOCATION /home/travis/ECE_406/Rust/my_rust_folder/target/debug/libmy_rust_package.a)
+# add_executable(my_target "main/main.c")
+# target_link_libraries(my_target PUBLIC my_rust_package)
