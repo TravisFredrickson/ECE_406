@@ -3,7 +3,7 @@
         "board/esp32c6-builtin.cfg"
     ],
     "idf.flashType": "UART",
-    "idf.port": "/dev/ttyUSB0",
+    "idf.port": "/dev/ttyUSB1",
     "files.associations": {
         "esp_zigbee_ha_standard.h": "c",
         "esp_zb_switch.h": "c",
