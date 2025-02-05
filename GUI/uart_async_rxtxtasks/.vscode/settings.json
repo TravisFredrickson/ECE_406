@@ -1,0 +1,18 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.espIdfPath": "/home/travis/esp/v5.4/esp-idf",
+    "idf.toolsPath": "/home/travis/.espressif",
+    "idf.openOcdConfigs": [
+        "board/esp32c6-builtin.cfg"
+    ],
+    "idf.port": "/dev/ttyUSB0",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "system_error": "c",
+        "string": "c",
+        "format": "c",
+        "esp_system.h": "c",
+        "gpio.h": "c",
+        "stdlib.h": "c"
+    }
+}
