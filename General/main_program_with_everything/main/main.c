@@ -3,7 +3,7 @@
  *############################################################*/
 
 /* Author: Travis Fredrickson.
- * Date: 2025-02-04.
+ * Date: 2025-02-27.
  * Description: Does something on an ESP32-C6-DevKitC-1-N8. */
 
 /*##############################################################
@@ -63,10 +63,10 @@
  * Button.
  *============================================================*/
 
-#define BUTTON_CHECK_TASK_PRIORITY 10
-#define BUTTON_RED_GPIO GPIO_NUM_6
-#define BUTTON_YELLOW_GPIO GPIO_NUM_5
-#define BUTTON_GREEN_GPIO GPIO_NUM_4
+// #define BUTTON_CHECK_TASK_PRIORITY 10
+// #define BUTTON_RED_GPIO GPIO_NUM_6
+// #define BUTTON_YELLOW_GPIO GPIO_NUM_5
+// #define BUTTON_GREEN_GPIO GPIO_NUM_4
 
 /*==============================================================
  * LED strip.
@@ -110,6 +110,8 @@ typedef struct
  * CONSTANTS
  *############################################################*/
 
+const bool is_debug_on = true;
+
 /*##############################################################
  * GLOBAL VARIABLES
  *############################################################*/
@@ -118,9 +120,9 @@ typedef struct
  * Button.
  *============================================================*/
 
-static button_event_t button_event;
-static QueueHandle_t button_events;
-static TaskHandle_t button_check_task_handle = NULL;
+// static button_event_t button_event;
+// static QueueHandle_t button_events;
+// static TaskHandle_t button_check_task_handle = NULL;
 
 /*==============================================================
  * LED strip.
@@ -145,8 +147,8 @@ static void print_chip_information(void);
  * Button.
  *============================================================*/
 
-static void button_configure(void);
-static void button_check_task(void *pvParameter);
+// static void button_configure(void);
+// static void button_check_task(void *pvParameter);
 
 /*==============================================================
  * LED strip.
@@ -164,8 +166,8 @@ static void led_strip_green_task(void *pvParameter);
 
 static void uart_configure(void);
 static void uart_rx_task(void *arg);
-static void uart_tx_task(void *arg);
-static int uart_send_data(const char *logName, const char *data);
+// static void uart_tx_task(void *arg);
+// static int uart_send_data(const char *logName, const char *data);
 
 /*##############################################################
  * FUNCTIONS
@@ -205,37 +207,37 @@ static void print_chip_information(void)
  * Button.
  *============================================================*/
 
-static void button_configure(void)
-{
-    ESP_LOGI(TAG, "button_configure().");
-    button_events = pulled_button_init(
-        (PIN_BIT(BUTTON_GREEN_GPIO) | PIN_BIT(BUTTON_YELLOW_GPIO) | PIN_BIT(BUTTON_RED_GPIO)),
-        GPIO_PULLUP_ONLY);
-}
+// static void button_configure(void)
+// {
+//     ESP_LOGI(TAG, "button_configure().");
+//     button_events = pulled_button_init(
+//         (PIN_BIT(BUTTON_GREEN_GPIO) | PIN_BIT(BUTTON_YELLOW_GPIO) | PIN_BIT(BUTTON_RED_GPIO)),
+//         GPIO_PULLUP_ONLY);
+// }
 
-static void button_check_task(void *pvParameter)
-{
-    for (;;)
-    {
-        if (xQueueReceive(button_events, &button_event, pdMS_TO_TICKS(1000)))
-        {
-            if ((button_event.pin == BUTTON_GREEN_GPIO) && (button_event.event == BUTTON_DOWN))
-            {
-                vTaskResume(led_strip_green_task_handle);
-            }
-            if ((button_event.pin == BUTTON_YELLOW_GPIO) && (button_event.event == BUTTON_DOWN))
-            {
-                vTaskResume(led_strip_yellow_task_handle);
-            }
-            if ((button_event.pin == BUTTON_RED_GPIO) && (button_event.event == BUTTON_DOWN))
-            {
-                vTaskResume(led_strip_red_task_handle);
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-    vTaskDelete(NULL);
-}
+// static void button_check_task(void *pvParameter)
+// {
+//     for (;;)
+//     {
+//         if (xQueueReceive(button_events, &button_event, pdMS_TO_TICKS(1000)))
+//         {
+//             if ((button_event.pin == BUTTON_GREEN_GPIO) && (button_event.event == BUTTON_DOWN))
+//             {
+//                 vTaskResume(led_strip_green_task_handle);
+//             }
+//             if ((button_event.pin == BUTTON_YELLOW_GPIO) && (button_event.event == BUTTON_DOWN))
+//             {
+//                 vTaskResume(led_strip_yellow_task_handle);
+//             }
+//             if ((button_event.pin == BUTTON_RED_GPIO) && (button_event.event == BUTTON_DOWN))
+//             {
+//                 vTaskResume(led_strip_red_task_handle);
+//             }
+//         }
+//         vTaskDelay(pdMS_TO_TICKS(10));
+//     }
+//     vTaskDelete(NULL);
+// }
 
 /*==============================================================
  * LED strip.
@@ -323,8 +325,11 @@ static void led_strip_red_task(void *pvParameter)
         ESP_LOGE(TAG, "Ending led_strip_red_task().");
         led_strip.state = OFF;
         led_strip_update();
+
+        /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
+    /* It should never reach here. */
     vTaskDelete(NULL);
 }
 
@@ -354,8 +359,11 @@ static void led_strip_yellow_task(void *pvParameter)
         ESP_LOGW(TAG, "Ending led_strip_yellow_task().");
         led_strip.state = OFF;
         led_strip_update();
+
+        /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
+    /* It should never reach here. */
     vTaskDelete(NULL);
 }
 
@@ -387,8 +395,11 @@ static void led_strip_green_task(void *pvParameter)
         ESP_LOGI(TAG, "Ending led_strip_green_task().");
         led_strip.state = OFF;
         led_strip_update();
+
+        /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
+    /* It should never reach here. */
     vTaskDelete(NULL);
 }
 
@@ -406,7 +417,7 @@ static void uart_configure(void)
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
         .source_clk = UART_SCLK_DEFAULT,
     };
-    // We won't use a buffer for sending data.
+    /* We won't use a buffer for sending data. */
     uart_driver_install(UART_NUM_1, UART_RX_BUFFER_SIZE * 2, 0, 0, NULL, 0);
     uart_param_config(UART_NUM_1, &uart_config);
     uart_set_pin(UART_NUM_1, UART_TX_PIN, UART_RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
@@ -417,57 +428,72 @@ static void uart_rx_task(void *arg)
     static const char *UART_RX_TASK_TAG = "UART_RX_TASK";
     esp_log_level_set(UART_RX_TASK_TAG, ESP_LOG_INFO);
     uint8_t *data = (uint8_t *)malloc(UART_RX_BUFFER_SIZE + 1);
-    while (1)
+    for (;;)
     {
-        const int rxBytes = uart_read_bytes(UART_NUM_1, data, UART_RX_BUFFER_SIZE, pdMS_TO_TICKS(1000));
-        if (rxBytes > 0)
+        /* Check if there is received data. */
+        const int rx_bytes = uart_read_bytes(UART_NUM_1, data, UART_RX_BUFFER_SIZE, pdMS_TO_TICKS(1000));
+        if (rx_bytes > 0)
         {
-            data[rxBytes] = 0;
-            ESP_LOGI(UART_RX_TASK_TAG, "Read %d bytes: '%s'.", rxBytes, data);
-            ESP_LOG_BUFFER_HEXDUMP(UART_RX_TASK_TAG, data, rxBytes, ESP_LOG_INFO);
+            /* Idk what this does. It seems to set the end of what was read
+             * to `0`, but why? */
+            data[rx_bytes] = 0;
 
-            if (0)
+            if (is_debug_on)
             {
-                char *message = "Read something: ";
-                const int len = strlen(message);
-                uart_write_bytes(UART_NUM_1, message, len);
+                ESP_LOGI(UART_RX_TASK_TAG, "Read %d bytes: '%s'.", rx_bytes, data);
+                ESP_LOG_BUFFER_HEXDUMP(UART_RX_TASK_TAG, data, rx_bytes, ESP_LOG_INFO);
             }
 
-            switch (*data)
+            /* Convert `data` to a string. */
+            char data_string[128];
+            int i = 0;
+            int index = 0;
+            for (i = 0; i < rx_bytes; i++)
             {
-            case 48: /* ASCII "0". */
-                vTaskResume(led_strip_green_task_handle);
-                break;
-            case 49: /* ASCII "1". */
-                vTaskResume(led_strip_yellow_task_handle);
-                break;
-            case 50: /* ASCII "2". */
+                index += snprintf(&data_string[index], 128 - index, "%c", data[i]);
+            }
+            if (is_debug_on)
+            {
+                ESP_LOGI(UART_RX_TASK_TAG, "data_string = %s.", data_string);
+            }
+
+            /* Determine what was read and what to do. */
+            if (strcmp(data_string, "led_strip_red_task") == 0)
+            {
                 vTaskResume(led_strip_red_task_handle);
-                break;
+            }
+            else if (strcmp(data_string, "led_strip_yellow_task") == 0)
+            {
+                vTaskResume(led_strip_yellow_task_handle);
+            }
+            else if (strcmp(data_string, "led_strip_green_task") == 0)
+            {
+                vTaskResume(led_strip_green_task_handle);
             }
         }
     }
+    /* It should never reach here. */
     free(data);
 }
 
-static void uart_tx_task(void *arg)
-{
-    static const char *UART_TX_TASK_TAG = "UART_TX_TASK";
-    esp_log_level_set(UART_TX_TASK_TAG, ESP_LOG_INFO);
-    while (1)
-    {
-        uart_send_data(UART_TX_TASK_TAG, "Hello world.\n");
-        vTaskDelay(pdMS_TO_TICKS(2000));
-    }
-}
+// static void uart_tx_task(void *arg)
+// {
+//     static const char *UART_TX_TASK_TAG = "UART_TX_TASK";
+//     esp_log_level_set(UART_TX_TASK_TAG, ESP_LOG_INFO);
+//     for (;;)
+//     {
+//         uart_send_data(UART_TX_TASK_TAG, "Hello world.\n");
+//         vTaskDelay(pdMS_TO_TICKS(2000));
+//     }
+// }
 
-static int uart_send_data(const char *logName, const char *data)
-{
-    const int len = strlen(data);
-    const int txBytes = uart_write_bytes(UART_NUM_1, data, len);
-    ESP_LOGI(logName, "Wrote %d bytes.", txBytes);
-    return txBytes;
-}
+// static int uart_send_data(const char *logName, const char *data)
+// {
+//     const int len = strlen(data);
+//     const int txBytes = uart_write_bytes(UART_NUM_1, data, len);
+//     ESP_LOGI(logName, "Wrote %d bytes.", txBytes);
+//     return txBytes;
+// }
 
 /*##############################################################
  * MAIN
@@ -518,18 +544,17 @@ void app_main(void)
         NULL,
         UART_RX_TASK_PRIORITY,
         NULL);
-    xTaskCreate(
-        &uart_tx_task,
-        "uart_tx_task",
-        TASK_STACK_DEPTH,
-        NULL,
-        UART_TX_TASK_PRIORITY,
-        NULL);
+    // xTaskCreate(
+    //     &uart_tx_task,
+    //     "uart_tx_task",
+    //     TASK_STACK_DEPTH,
+    //     NULL,
+    //     UART_TX_TASK_PRIORITY,
+    //     NULL);
 
     /* Turn the LED off. The new ESP-IDF version 5.4 turns it bright
-     * green for an unkown reason. This may not work as it may be
-     * delayed. * Seems to work though, the LED briefly turns green,
-     * then turns off. */
+     * green for an unkown reason. This solution seems to work okay.
+     * The LED briefly turns green, then turns off. */
     led_strip.state = OFF;
     led_strip_clear(led_strip.handle);
 }
