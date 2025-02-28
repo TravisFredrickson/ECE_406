@@ -1,0 +1,55 @@
+/*##############################################################
+ * WIDGETS
+ *############################################################*/
+
+QWidget {
+    background-color: hsl(0%, 0%, 75%);
+    border: 2px solid hsl(0%, 0%, 0%);
+    border-radius: 0px;
+    color: hsl(0%, 0%, 0%);
+    font: bold 16px "Courier New";
+}
+
+/*##############################################################
+ * ITEMS
+ *############################################################*/
+
+QComboBox {
+    background-color: hsl(0%, 0%, 100%);
+}
+
+QComboBox:hover {
+    background-color: hsl(15%, 100%, 50%);
+}
+
+QLabel {
+    border: none;
+}
+
+QLineEdit {
+    background-color: hsl(0%, 0%, 100%);
+}
+
+QLineEdit:hover {
+    background-color: hsl(15%, 100%, 50%);
+}
+
+QPushButton {
+    background-color: hsl(0%, 0%, 100%);
+}
+
+QPushButton:hover {
+    background-color: hsl(15%, 100%, 50%);
+}
+
+QPushButton:pressed {
+    background-color: hsl(25%, 100%, 50%);
+}
+
+QPushButton:disabled {
+    background-color: hsl(0%, 0%, 50%);
+}
+
+QTextEdit {
+    background-color: hsl(0%, 0%, 100%);
+}
