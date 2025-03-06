@@ -110,7 +110,7 @@ typedef struct
  * CONSTANTS
  *############################################################*/
 
-const bool is_debug_on = true;
+const bool is_debug_on = false;
 
 /*##############################################################
  * GLOBAL VARIABLES
@@ -220,6 +220,8 @@ static void red_task(void *pvParameter)
 {
     /* Wait for task to be called via vTaskResume(). */
     vTaskSuspend(NULL);
+
+    /* Loop forever. */
     for (;;)
     {
         ESP_LOGE(TAG, "Beginning red_task().");
@@ -246,6 +248,7 @@ static void red_task(void *pvParameter)
         /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
+
     /* It should never reach here. */
     vTaskDelete(NULL);
 }
@@ -445,7 +448,7 @@ static void led_strip_update(void)
  *============================================================*/
 
 /*--------------------------------------------------------------
- *
+ * uart_configure()
  *------------------------------------------------------------*/
 
 static void uart_configure(void)
@@ -465,18 +468,25 @@ static void uart_configure(void)
 }
 
 /*--------------------------------------------------------------
- *
+ * uart_rx_task()
  *------------------------------------------------------------*/
 
 static void uart_rx_task(void *arg)
 {
+    /* Initialize variables. */
     static const char *UART_RX_TASK_TAG = "UART_RX_TASK";
     esp_log_level_set(UART_RX_TASK_TAG, ESP_LOG_INFO);
     uint8_t *data = (uint8_t *)malloc(UART_RX_BUFFER_SIZE + 1);
+
+    /* Loop forever. */
     for (;;)
     {
         /* Check if there is received data. */
-        const int rx_bytes = uart_read_bytes(UART_NUM_1, data, UART_RX_BUFFER_SIZE, pdMS_TO_TICKS(1000));
+        if (is_debug_on)
+        {
+            ESP_LOGI(UART_RX_TASK_TAG, "Checking if there is received data.");
+        }
+        const int rx_bytes = uart_read_bytes(UART_NUM_1, data, UART_RX_BUFFER_SIZE, pdMS_TO_TICKS(100));
         if (rx_bytes > 0)
         {
             /* Idk what this does. It seems to set the end of what was read
@@ -521,12 +531,14 @@ static void uart_rx_task(void *arg)
             }
         }
     }
+
     /* It should never reach here. */
     free(data);
+    vTaskDelete(NULL);
 }
 
 /*--------------------------------------------------------------
- *
+ * uart_tx_task()
  *------------------------------------------------------------*/
 
 // static void uart_tx_task(void *arg)
@@ -541,7 +553,7 @@ static void uart_rx_task(void *arg)
 // }
 
 /*--------------------------------------------------------------
- *
+ * uart_send_data()
  *------------------------------------------------------------*/
 
 // static int uart_send_data(const char *logName, const char *data)
@@ -609,9 +621,10 @@ void app_main(void)
     //     UART_TX_TASK_PRIORITY,
     //     NULL);
 
-    /* Turn the LED off. The new ESP-IDF version 5.4 turns it bright
-     * green for an unkown reason. This solution seems to work okay.
-     * The LED briefly turns green, then turns off. */
+    /* Turn the LED off. Something (maybe the "Zigbee Green Power
+     * enable" configuration setting) turns it bright green for an
+     * unkown reason. This solution seems to work okay. The LED
+     * briefly turns green, then turns off. */
     led_strip.state = OFF;
     led_strip_clear(led_strip.handle);
 }

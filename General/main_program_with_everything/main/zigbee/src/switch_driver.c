@@ -1,3 +1,9 @@
+/*##############################################################
+ * FILE INFO
+ *############################################################*/
+
+/* This file has been modified from an example. */
+
 /*
  * SPDX-FileCopyrightText: 2021-2023 Espressif Systems (Shanghai) CO LTD
  *
@@ -35,52 +41,91 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @brief:
+ * This example code shows how to configure light switch with
+ * attribute as well as button switch handler.
+ *
+ * @note:
+   Currently only support toggle switch functionality available.
+ *
+ * @note:
+ * For other possible switch functions (on/off, level up/down,
+ * step up/down), user needs to implement and create them by
+ * themselves.
+ */
+
+/*##############################################################
+ * INCLUDES
+ *############################################################*/
+
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "switch_driver.h"
 
-/**
- * @brief:
- * This example code shows how to configure light switch with attribute as well as button switch handler.
- *
- * @note:
-   Currently only support toggle switch functionality available
- *
- * @note:
- * For other possible switch functions (on/off,level up/down,step up/down). User need to implement and create them by themselves
- */
+/*##############################################################
+ * CONSTANTS
+ *############################################################*/
+
+static const char *TAG = "ESP_ZB_SWITCH";
+
+/*##############################################################
+ * GLOBAL VARIABLES
+ *############################################################*/
 
 static QueueHandle_t gpio_evt_queue = NULL;
-/* button function pair, should be defined in switch example source file */
+
+/* Button function pair, should be defined in switch example source file. */
 static switch_func_pair_t *switch_func_pair;
-/* call back function pointer */
+
+/* Call back function pointer. */
 static esp_switch_callback_t func_ptr;
-/* which button is pressed */
+
+/* Which button is pressed. */
 static uint8_t switch_num;
-static const char *TAG = "ESP_ZB_SWITCH";
+
+/*##############################################################
+ * FUNCTIONS
+ *############################################################*/
+
+/*--------------------------------------------------------------
+ * gpio_isr_handler()
+ *------------------------------------------------------------*/
 
 static void IRAM_ATTR gpio_isr_handler(void *arg)
 {
     xQueueSendFromISR(gpio_evt_queue, (switch_func_pair_t *)arg, NULL);
 }
 
+/*--------------------------------------------------------------
+ * switch_driver_gpios_intr_enabled()
+ *------------------------------------------------------------*/
+
 /**
- * @brief Enable GPIO (switches refer to) isr
+ * @brief Enable GPIO (switches refer to) ISR.
  *
- * @param enabled      enable isr if true.
+ * @param enabled Enable ISR if true.
  */
 static void switch_driver_gpios_intr_enabled(bool enabled)
 {
-    for (int i = 0; i < switch_num; ++i) {
-        if (enabled) {
+    for (int i = 0; i < switch_num; ++i)
+    {
+        if (enabled)
+        {
             gpio_intr_enable((switch_func_pair + i)->pin);
-        } else {
+        }
+        else
+        {
             gpio_intr_disable((switch_func_pair + i)->pin);
         }
     }
 }
+
+/*--------------------------------------------------------------
+ * switch_driver_button_detected()
+ *------------------------------------------------------------*/
 
 /**
  * @brief Tasks for checking the button event and debounce the switch state
@@ -94,16 +139,20 @@ static void switch_driver_button_detected(void *arg)
     static switch_state_t switch_state = SWITCH_IDLE;
     bool evt_flag = false;
 
-    for (;;) {
+    for (;;)
+    {
         /* check if there is any queue received, if yes read out the button_func_pair */
-        if (xQueueReceive(gpio_evt_queue, &button_func_pair, portMAX_DELAY)) {
-            io_num =  button_func_pair.pin;
+        if (xQueueReceive(gpio_evt_queue, &button_func_pair, portMAX_DELAY))
+        {
+            io_num = button_func_pair.pin;
             switch_driver_gpios_intr_enabled(false);
             evt_flag = true;
         }
-        while (evt_flag) {
+        while (evt_flag)
+        {
             bool value = gpio_get_level(io_num);
-            switch (switch_state) {
+            switch (switch_state)
+            {
             case SWITCH_IDLE:
                 switch_state = (value == GPIO_INPUT_LEVEL_ON) ? SWITCH_PRESS_DETECTED : SWITCH_IDLE;
                 break;
@@ -118,7 +167,8 @@ static void switch_driver_button_detected(void *arg)
             default:
                 break;
             }
-            if (switch_state == SWITCH_IDLE) {
+            if (switch_state == SWITCH_IDLE)
+            {
                 switch_driver_gpios_intr_enabled(true);
                 evt_flag = false;
                 break;
@@ -127,6 +177,10 @@ static void switch_driver_button_detected(void *arg)
         }
     }
 }
+
+/*--------------------------------------------------------------
+ * switch_driver_gpio_init()
+ *------------------------------------------------------------*/
 
 /**
  * @brief init GPIO configuration as well as isr
@@ -142,7 +196,8 @@ static bool switch_driver_gpio_init(switch_func_pair_t *button_func_pair, uint8_
     uint64_t pin_bit_mask = 0;
 
     /* set up button func pair pin mask */
-    for (int i = 0; i < button_num; ++i) {
+    for (int i = 0; i < button_num; ++i)
+    {
         pin_bit_mask |= (1ULL << (button_func_pair + i)->pin);
     }
     /* interrupt of falling edge */
@@ -154,7 +209,8 @@ static bool switch_driver_gpio_init(switch_func_pair_t *button_func_pair, uint8_
     gpio_config(&io_conf);
     /* create a queue to handle gpio event from isr */
     gpio_evt_queue = xQueueCreate(10, sizeof(switch_func_pair_t));
-    if ( gpio_evt_queue == 0) {
+    if (gpio_evt_queue == 0)
+    {
         ESP_LOGE(TAG, "Queue was not created and must not be used");
         return false;
     }
@@ -162,15 +218,21 @@ static bool switch_driver_gpio_init(switch_func_pair_t *button_func_pair, uint8_
     xTaskCreate(switch_driver_button_detected, "button_detected", 4096, NULL, configMAX_PRIORITIES - 3, NULL);
     /* install gpio isr service */
     gpio_install_isr_service(ESP_INTR_FLAG_DEFAULT);
-    for (int i = 0; i < button_num; ++i) {
-        gpio_isr_handler_add((button_func_pair + i)->pin, gpio_isr_handler, (void *) (button_func_pair + i));
+    for (int i = 0; i < button_num; ++i)
+    {
+        gpio_isr_handler_add((button_func_pair + i)->pin, gpio_isr_handler, (void *)(button_func_pair + i));
     }
     return true;
 }
 
+/*--------------------------------------------------------------
+ * switch_driver_init()
+ *------------------------------------------------------------*/
+
 bool switch_driver_init(switch_func_pair_t *button_func_pair, uint8_t button_num, esp_switch_callback_t cb)
 {
-    if (!switch_driver_gpio_init(button_func_pair, button_num)) {
+    if (!switch_driver_gpio_init(button_func_pair, button_num))
+    {
         return false;
     }
     func_ptr = cb;

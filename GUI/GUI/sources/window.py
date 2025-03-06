@@ -70,6 +70,9 @@ class window(QMainWindow):
         self.QPushButton_follower_red_task = QPushButton("Follower Red Task")
         self.QPushButton_follower_yellow_task = QPushButton("Follower Yellow Task")
         self.QPushButton_follower_green_task = QPushButton("Follower Green Task")
+        self.QLabel_custom_command = QLabel("Custom Command")
+        self.QLineEdit_custom_command = QLineEdit()
+        self.QPushButton_custom_command = QPushButton("Send Custom Command")
 
         self.QLayout_commands = QGridLayout()
         self.QLayout_commands.addWidget(self.QLabel_leader_commands, 0, 0)
@@ -80,6 +83,9 @@ class window(QMainWindow):
         self.QLayout_commands.addWidget(self.QPushButton_follower_red_task, 1, 1)
         self.QLayout_commands.addWidget(self.QPushButton_follower_yellow_task, 2, 1)
         self.QLayout_commands.addWidget(self.QPushButton_follower_green_task, 3, 1)
+        self.QLayout_commands.addWidget(self.QLabel_custom_command, 4, 0, 1, 2)
+        self.QLayout_commands.addWidget(self.QLineEdit_custom_command, 5, 0, 1, 2)
+        self.QLayout_commands.addWidget(self.QPushButton_custom_command, 6, 0, 1, 2)
 
         self.QWidget_commands = QWidget()
         self.QWidget_commands.setLayout(self.QLayout_commands)
@@ -89,15 +95,9 @@ class window(QMainWindow):
         #---------------------------------------------------------------
 
         self.QTextEdit_terminal = QTextEdit()
-        self.QLabel_command = QLabel("Command")
-        self.QLineEdit_command = QLineEdit()
-        self.QPushButton_send_command = QPushButton("Send Command")
 
         self.QLayout_terminal = QGridLayout()
         self.QLayout_terminal.addWidget(self.QTextEdit_terminal)
-        self.QLayout_terminal.addWidget(self.QLabel_command)
-        self.QLayout_terminal.addWidget(self.QLineEdit_command)
-        self.QLayout_terminal.addWidget(self.QPushButton_send_command)
 
         self.QWidget_terminal = QWidget()
         self.QWidget_terminal.setLayout(self.QLayout_terminal)
@@ -155,9 +155,9 @@ class window(QMainWindow):
 
         self.QTextEdit_terminal.setMinimumHeight(size_3)
         self.QTextEdit_terminal.setReadOnly(True)
-        self.QLineEdit_command.setFixedHeight(size_2)
-        self.QPushButton_send_command.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.QPushButton_send_command.setFixedHeight(size_1)
+        self.QLineEdit_custom_command.setFixedHeight(size_2)
+        self.QPushButton_custom_command.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.QPushButton_custom_command.setFixedHeight(size_1)
 
         #---------------------------------------------------------------
         # Connect buttons to functions.
@@ -165,11 +165,11 @@ class window(QMainWindow):
         # Use lambda functions if variables need to be passed.
         #---------------------------------------------------------------
 
-        self.QLineEdit_command.returnPressed.connect(self.send_command)
+        self.QLineEdit_custom_command.returnPressed.connect(self.send_command)
 
         self.QPushButton_connect.clicked.connect(self.connect_to_port)
         self.QPushButton_refresh_ports.clicked.connect(self.refresh_ports)
-        self.QPushButton_send_command.clicked.connect(lambda: self.send_command(self.QLineEdit_command.text()))
+        self.QPushButton_custom_command.clicked.connect(lambda: self.send_command(self.QLineEdit_custom_command.text()))
 
         self.QPushButton_leader_red_task.clicked.connect(lambda: self.send_command("leader_red_task"))
         self.QPushButton_leader_yellow_task.clicked.connect(lambda: self.send_command("leader_yellow_task"))
