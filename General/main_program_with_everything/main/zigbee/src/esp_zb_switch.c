@@ -18,19 +18,40 @@
  * CONDITIONS OF ANY KIND, either express or implied.
  */
 
+/* Some arconyms in this file:
+ *     - cb = callback.
+ *     - ha = home automation.
+ *     - nvz = non-volatile storage.
+ *     - zb = zigbee.
+ *     - zcl = zigbee cluster library. */
+
 /*##############################################################
  * INCLUDES
  *############################################################*/
 
+/*==============================================================
+ * Standard.
+ *============================================================*/
+
 #include "string.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+
+/*==============================================================
+ * ESP.
+ *============================================================*/
+
 #include "esp_err.h"
 #include "esp_check.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
-#include "ha/esp_zigbee_ha_standard.h"
 #include "esp_zb_switch.h"
+#include "ha/esp_zigbee_ha_standard.h"
+#include "nvs_flash.h"
+
+/*==============================================================
+ * FreeRTOS.
+ *============================================================*/
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 /*##############################################################
  * TYPEDEFS
@@ -50,7 +71,7 @@ typedef struct light_bulb_device_params_s
  * CONSTANTS
  *############################################################*/
 
-static const char *TAG = "ESP_ZB_ON_OFF_SWITCH";
+static const char *TAG = "ESP_ZB_SWITCH";
 
 /*##############################################################
  * GLOBAL VARIABLES
@@ -62,6 +83,33 @@ static switch_func_pair_t button_func_pair[] = {
 /*##############################################################
  * FUNCTIONS
  *############################################################*/
+
+/*--------------------------------------------------------------
+ * follower_toggle_led()
+ *------------------------------------------------------------*/
+
+/* Implement light switch toggle functionality. */
+
+void follower_toggle_led(void)
+{
+    /* "Command request". */
+    esp_zb_zcl_on_off_cmd_t cmd_req;
+    /* The "endpoint" of the switch device. */
+    cmd_req.zcl_basic_cmd.src_endpoint = HA_ONOFF_SWITCH_ENDPOINT;
+    /* Something about an address. */
+    cmd_req.address_mode = ESP_ZB_APS_ADDR_MODE_DST_ADDR_ENDP_NOT_PRESENT;
+    /* Thing that says to toggle the light, in contrast to doing
+     * something else. */
+    cmd_req.on_off_cmd_id = ESP_ZB_ZCL_CMD_ON_OFF_TOGGLE_ID;
+    /* Try to "acquire a lock" for a long time. */
+    esp_zb_lock_acquire(portMAX_DELAY);
+    /* Send the on/off command. */
+    esp_zb_zcl_on_off_cmd_req(&cmd_req);
+    /* Release the "lock". */
+    esp_zb_lock_release();
+    /* Say we did it. Yay! */
+    ESP_EARLY_LOGI(TAG, "Send on/off toggle command.");
+}
 
 /*--------------------------------------------------------------
  * zb_buttons_handler()
@@ -89,8 +137,9 @@ static void zb_buttons_handler(switch_func_pair_t *button_func_pair)
 
 static esp_err_t deferred_driver_init(void)
 {
-    ESP_RETURN_ON_FALSE(switch_driver_init(button_func_pair, PAIR_SIZE(button_func_pair), zb_buttons_handler), ESP_FAIL, TAG,
-                        "Failed to initialize switch driver");
+    ESP_RETURN_ON_FALSE(
+        switch_driver_init(button_func_pair, PAIR_SIZE(button_func_pair), zb_buttons_handler),
+        ESP_FAIL, TAG, "Failed to initialize switch driver");
     return ESP_OK;
 }
 

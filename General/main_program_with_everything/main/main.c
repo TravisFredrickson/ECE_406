@@ -25,8 +25,8 @@
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_log.h"
-#include "led_strip.h"
 #include "esp_task_wdt.h"
+#include "led_strip.h"
 #include "sdkconfig.h"
 
 /*==============================================================
@@ -183,7 +183,7 @@ static void uart_rx_task(void *arg);
  *============================================================*/
 
 /*--------------------------------------------------------------
- *
+ * print_chip_information()
  *------------------------------------------------------------*/
 
 static void print_chip_information(void)
@@ -213,7 +213,7 @@ static void print_chip_information(void)
 }
 
 /*--------------------------------------------------------------
- *
+ * red_task()
  *------------------------------------------------------------*/
 
 static void red_task(void *pvParameter)
@@ -227,7 +227,10 @@ static void red_task(void *pvParameter)
         ESP_LOGE(TAG, "Beginning red_task().");
         for (uint8_t i = 1; i <= RYG_TASK_SECONDS; i++)
         {
-            /* Wait by busy waiting. */
+            /* Wait by busy waiting. This is typically a bad idea because it
+             * prevents other tasks from running, so typically waiting by
+             * *blocking* is a better idea. However, this is intended to
+             * demonstrate task preemption, so it is required. */
             TickType_t starting_tick = xTaskGetTickCount();
             TickType_t ticks_to_wait = pdMS_TO_TICKS(1000);
             while ((xTaskGetTickCount() - starting_tick) < ticks_to_wait)
@@ -254,13 +257,15 @@ static void red_task(void *pvParameter)
 }
 
 /*--------------------------------------------------------------
- *
+ * yellow_task()
  *------------------------------------------------------------*/
 
 static void yellow_task(void *pvParameter)
 {
     /* Wait for task to be called via vTaskResume(). */
     vTaskSuspend(NULL);
+
+    /* Loop forever. */
     for (;;)
     {
         ESP_LOGW(TAG, "Beginning yellow_task().");
@@ -287,25 +292,26 @@ static void yellow_task(void *pvParameter)
         /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
+    
     /* It should never reach here. */
     vTaskDelete(NULL);
 }
 
 /*--------------------------------------------------------------
- *
+ * green_task()
  *------------------------------------------------------------*/
 
 static void green_task(void *pvParameter)
 {
     /* Wait for task to be called via vTaskResume(). */
     vTaskSuspend(NULL);
+
+    /* Loop forever. */
     for (;;)
     {
         ESP_LOGI(TAG, "Beginning green_task().");
         for (uint8_t i = 1; i <= RYG_TASK_SECONDS; i++)
         {
-            /* Wait by blocking. */
-            // vTaskDelay(pdMS_TO_TICKS(1000));
             /* Wait by busy waiting. */
             TickType_t starting_tick = xTaskGetTickCount();
             TickType_t ticks_to_wait = pdMS_TO_TICKS(1000);
@@ -327,6 +333,7 @@ static void green_task(void *pvParameter)
         /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
+    
     /* It should never reach here. */
     vTaskDelete(NULL);
 }
@@ -336,7 +343,7 @@ static void green_task(void *pvParameter)
  *============================================================*/
 
 /*--------------------------------------------------------------
- *
+ * button_configure()
  *------------------------------------------------------------*/
 
 // static void button_configure(void)
@@ -348,7 +355,7 @@ static void green_task(void *pvParameter)
 // }
 
 /*--------------------------------------------------------------
- *
+ * button_check_task()
  *------------------------------------------------------------*/
 
 // static void button_check_task(void *pvParameter)
@@ -380,7 +387,7 @@ static void green_task(void *pvParameter)
  *============================================================*/
 
 /*--------------------------------------------------------------
- *
+ * led_strip_configure()
  *------------------------------------------------------------*/
 
 static void led_strip_configure(void)
@@ -402,7 +409,7 @@ static void led_strip_configure(void)
 }
 
 /*--------------------------------------------------------------
- *
+ * led_strip_update()
  *------------------------------------------------------------*/
 
 static void led_strip_update(void)
@@ -512,7 +519,7 @@ static void uart_rx_task(void *arg)
                 ESP_LOGI(UART_RX_TASK_TAG, "data_string = %s.", data_string);
             }
 
-            /* Determine what was read and what to do. */
+            /* Determine what was read and then do something. */
             if (strcmp(data_string, "leader_red_task") == 0)
             {
                 vTaskResume(red_task_handle);
@@ -524,6 +531,10 @@ static void uart_rx_task(void *arg)
             else if (strcmp(data_string, "leader_green_task") == 0)
             {
                 vTaskResume(green_task_handle);
+            }
+            else if (strcmp(data_string, "follower_toggle_led") == 0)
+            {
+                follower_toggle_led();
             }
             else
             {
