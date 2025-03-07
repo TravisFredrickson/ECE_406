@@ -1,29 +1,22 @@
 /*##############################################################
- * *
- *############################################################*/
-
-* {
-    color: hsl(0%, 0%, 0%);
-    font: bold 16px "Courier New";
-}
-
-/*##############################################################
  * QWidget
  *############################################################*/
 
 QWidget {
-    background-color: hsl(0%, 0%, 75%);
-    border: 2px solid hsl(0%, 0%, 0%);
-    border-radius: 0px;
+    background-color: hsl(0, 0%, 75%);
+    border: 2px solid hsl(0, 0%, 0%);
+    border-radius: 0;
+    color: hsl(0, 0%, 0%);
+    font: bold 16px "Courier New";
 }
 
 QWidget[css_class="QWidget_central"] {
-    background-color: hsl(0%, 0%, 62.5%);
+    background-color: hsl(0, 0%, 62.5%);
     border: none;
 }
 
 QWidget[css_class="QWidget_large"] {
-    border: 4px solid hsl(0%, 0%, 0%);
+    border: 4px solid hsl(0, 0%, 0%);
 }
 
 /*##############################################################
@@ -31,7 +24,36 @@ QWidget[css_class="QWidget_large"] {
  *############################################################*/
 
 QCheckBox {
+    background: none;
     border: none;
+}
+
+QCheckBox::indicator {
+    border: 1px solid hsl(0, 0%, 0%);
+}
+
+QCheckBox::indicator:unchecked {
+    background-color: hsl(0, 0%, 90%);
+}
+
+QCheckBox::indicator:unchecked:hover {
+    background-color: hsl(0, 0%, 100%);
+}
+
+QCheckBox::indicator:unchecked:pressed {
+    background-color: hsl(0, 0%, 60%);
+}
+
+QCheckBox::indicator:checked {
+    background-color: hsl(0, 0%, 20%);
+}
+
+QCheckBox::indicator:checked:hover {
+    background-color: hsl(0, 0%, 40%);
+}
+
+QCheckBox::indicator:checked:pressed {
+    background-color: hsl(0, 0%, 0%);
 }
 
 /*##############################################################
@@ -39,15 +61,15 @@ QCheckBox {
  *############################################################*/
 
 QComboBox {
-    background-color: hsl(0%, 0%, 100%);
+    background-color: hsl(0, 0%, 90%);
 }
 
 QComboBox:hover {
-    background-color: hsl(15%, 100%, 50%);
+    background-color: hsl(0, 0%, 100%);
 }
 
 QComboBox:disabled {
-    background-color: hsl(0%, 0%, 50%);
+    background-color: hsl(0, 0%, 50%);
 }
 
 /*##############################################################
@@ -68,11 +90,11 @@ QLabel[css_class="QLabel_large"] {
  *############################################################*/
 
 QLineEdit {
-    background-color: hsl(0%, 0%, 100%);
+    background-color: hsl(0, 0%, 90%);
 }
 
 QLineEdit:hover {
-    background-color: hsl(15%, 100%, 50%);
+    background-color: hsl(0, 0%, 100%);
 }
 
 /*##############################################################
@@ -80,19 +102,19 @@ QLineEdit:hover {
  *############################################################*/
 
 QPushButton {
-    background-color: hsl(0%, 0%, 100%);
+    background-color: hsl(0, 0%, 90%);
 }
 
 QPushButton:hover {
-    background-color: hsl(15%, 100%, 50%);
+    background-color: hsl(0, 0%, 100%);
 }
 
 QPushButton:pressed {
-    background-color: hsl(25%, 100%, 50%);
+    background-color: hsl(0, 0%, 60%);
 }
 
 QPushButton:disabled {
-    background-color: hsl(0%, 0%, 50%);
+    background-color: hsl(0, 0%, 50%);
 }
 
 /*##############################################################
@@ -100,5 +122,5 @@ QPushButton:disabled {
  *############################################################*/
 
 QTextEdit {
-    background-color: hsl(0%, 0%, 100%);
+    background-color: hsl(0, 0%, 90%);
 }

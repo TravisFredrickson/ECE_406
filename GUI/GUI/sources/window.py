@@ -3,7 +3,7 @@
 ################################################################
 
 # Author: Travis Fredrickson.
-# Date: 2025-03-06.
+# Date: 2025-03-07.
 # Description: A window for a GUI.
 
 ################################################################
@@ -28,7 +28,6 @@ size_3 = 256
 ################################################################
 
 class window(QMainWindow):
-
     #===============================================================
     # __init__()
     #===============================================================
@@ -98,6 +97,7 @@ class window(QMainWindow):
         self.QLabel_custom_command = QLabel("Custom Command")
         self.QLineEdit_custom_command = QLineEdit()
         self.QPushButton_custom_command = QPushButton("Send Custom Command")
+        self.QCheckBox_clear_on_send = QCheckBox("Clear on Send")
 
         # Create layout.
         self.QLayout_commands = QGridLayout()
@@ -110,6 +110,7 @@ class window(QMainWindow):
         self.QLayout_commands.addWidget(self.QLabel_custom_command, 4, 0, 1, 2)
         self.QLayout_commands.addWidget(self.QLineEdit_custom_command, 5, 0, 1, 2)
         self.QLayout_commands.addWidget(self.QPushButton_custom_command, 6, 0, 1, 2)
+        self.QLayout_commands.addWidget(self.QCheckBox_clear_on_send, 7, 0, 1, 2)
 
         # Create widget.
         self.QWidget_commands = QWidget()
@@ -125,15 +126,19 @@ class window(QMainWindow):
         self.QPushButton_leader_green_task.setCursor(Qt.CursorShape.PointingHandCursor)
         self.QPushButton_follower_toggle_led.setFixedHeight(size_1)
         self.QPushButton_follower_toggle_led.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.QLineEdit_custom_command.setPlaceholderText("Enter custom command here...")
+        self.QLineEdit_custom_command.setFixedHeight(size_1)
+        self.QLineEdit_custom_command.setPlaceholderText("Enter custom command here...\n")
+        self.QPushButton_custom_command.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.QPushButton_custom_command.setFixedHeight(size_1)
+        self.QCheckBox_clear_on_send.setCursor(Qt.CursorShape.PointingHandCursor)
 
         # Connect items to functions.
         self.QPushButton_leader_red_task.clicked.connect(lambda: self.send_command("leader_red_task"))
         self.QPushButton_leader_yellow_task.clicked.connect(lambda: self.send_command("leader_yellow_task"))
         self.QPushButton_leader_green_task.clicked.connect(lambda: self.send_command("leader_green_task"))
         self.QPushButton_follower_toggle_led.clicked.connect(lambda: self.send_command("follower_toggle_led"))
-        self.QLineEdit_custom_command.returnPressed.connect(self.send_command)
-        self.QPushButton_custom_command.clicked.connect(lambda: self.send_command(self.QLineEdit_custom_command.text()))
+        self.QLineEdit_custom_command.returnPressed.connect(lambda: self.send_custom_command(self.QLineEdit_custom_command.text()))
+        self.QPushButton_custom_command.clicked.connect(lambda: self.send_custom_command(self.QLineEdit_custom_command.text()))
 
         #---------------------------------------------------------------
         # Terminal widget.
@@ -141,12 +146,16 @@ class window(QMainWindow):
 
         # Create items.
         self.QTextEdit_terminal = QTextEdit()
-        self.QCheckBox_autoscroll = QCheckBox("Auto-Scroll")
+        self.QPushButton_clear_terminal = QPushButton("Clear Terminal")
+        self.QCheckBox_auto_scroll = QCheckBox("Auto-Scroll")
+        self.QCheckBox_word_wrap = QCheckBox("Word Wrap")
 
         # Create layout.
         self.QLayout_terminal = QGridLayout()
         self.QLayout_terminal.addWidget(self.QTextEdit_terminal)
-        self.QLayout_terminal.addWidget(self.QCheckBox_autoscroll)
+        self.QLayout_terminal.addWidget(self.QPushButton_clear_terminal)
+        self.QLayout_terminal.addWidget(self.QCheckBox_auto_scroll)
+        self.QLayout_terminal.addWidget(self.QCheckBox_word_wrap)
 
         # Create widget.
         self.QWidget_terminal = QWidget()
@@ -156,9 +165,14 @@ class window(QMainWindow):
         # Style.
         self.QTextEdit_terminal.setMinimumHeight(size_3)
         self.QTextEdit_terminal.setReadOnly(True)
-        self.QLineEdit_custom_command.setFixedHeight(size_1)
-        self.QPushButton_custom_command.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.QPushButton_custom_command.setFixedHeight(size_1)
+        self.QPushButton_clear_terminal.setFixedHeight(size_1)
+        self.QPushButton_clear_terminal.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.QCheckBox_auto_scroll.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.QCheckBox_word_wrap.setCursor(Qt.CursorShape.PointingHandCursor)
+
+        # Connect items to functions.
+        self.QPushButton_clear_terminal.clicked.connect(self.clear_terminal)
+        self.QCheckBox_word_wrap.toggled.connect(self.toggle_word_wrap)
 
         #---------------------------------------------------------------
         # The central widget.
@@ -197,9 +211,22 @@ class window(QMainWindow):
         # Initialize states.
         #---------------------------------------------------------------
 
+        # Reefrech ports.
         self.refresh_ports()
+
+        # Get the baud rates and set it to `115200` if available because
+        # it is very common.
         baud_rates = [str(baud_rate) for baud_rate in QSerialPortInfo.standardBaudRates()]
         self.QComboBox_baud_rates.addItems(baud_rates)
+        value_to_select = "115200"
+        index = self.QComboBox_baud_rates.findText(value_to_select)
+        if index != -1:
+            self.QComboBox_baud_rates.setCurrentIndex(index)
+
+        # Check some boxes.
+        self.QCheckBox_clear_on_send.setCheckState(Qt.CheckState.Checked)
+        self.QCheckBox_auto_scroll.setCheckState(Qt.CheckState.Checked)
+        self.QCheckBox_word_wrap.setCheckState(Qt.CheckState.Checked)
 
     #===============================================================
     # refresh_ports()
@@ -216,10 +243,10 @@ class window(QMainWindow):
             self.QComboBox_port_names.addItems(port_names)
         else:
             self.QComboBox_port_names.clear()
-            self.QComboBox_port_names.addItem("No ports.")
+            self.QComboBox_port_names.addItem("No ports.\n")
 
         # Update status text box with number of ports found.
-        self.QTextEdit_terminal_insert(f"GUI: Found {len(available_ports)} ports.\n")
+        self.insert_into_terminal(f"GUI: Found {len(available_ports)} ports.\n")
 
     #===============================================================
     # connect_to_port()
@@ -232,8 +259,7 @@ class window(QMainWindow):
         self.serial_port.setPortName(port_name)
         self.serial_port.setBaudRate(baud_rate)
 
-        # Attempt to connect to port.
-        # If connection succeeded.
+        # If connection succeeds.
         if self.serial_port.open(QIODeviceBase.OpenModeFlag.ReadWrite):
             # Change button from connect to disconnect functionality.
             self.QPushButton_connect.clicked.disconnect()
@@ -246,14 +272,14 @@ class window(QMainWindow):
             self.QComboBox_baud_rates.setDisabled(True)
 
             # Do some stuff.
-            self.QTextEdit_terminal_insert(f"GUI: Connected to port \"{port_name}\".\n")
+            self.insert_into_terminal(f"GUI: Connected to port \"{port_name}\".\n")
             self.timer = QTimer(self)
             self.timer.timeout.connect(self.read_from_port)
             self.timer.start(10)
         # If connection failed.
         else:
             error_message = self.serial_port.errorString()
-            self.QTextEdit_terminal_insert(f"GUI: Failed to connect to port \"{port_name}\": {error_message}.\n")
+            self.insert_into_terminal(f"GUI: Failed to connect to port \"{port_name}\": {error_message}.\n")
 
     #===============================================================
     # disconnect_from_port()
@@ -264,7 +290,7 @@ class window(QMainWindow):
         self.timer.stop()
         self.serial_port.close()
         port_name = self.serial_port.portName()
-        self.QTextEdit_terminal_insert(f"GUI: Disonnected from port \"{port_name}\".\n")
+        self.insert_into_terminal(f"GUI: Disonnected from port \"{port_name}\".\n")
 
         # Change button from disconnect to connect functionality.
         self.QPushButton_connect.clicked.disconnect()
@@ -284,7 +310,7 @@ class window(QMainWindow):
         if self.serial_port.canReadLine():
             data = self.serial_port.readLine().data().decode()
             port_name = self.serial_port.portName()
-            self.QTextEdit_terminal_insert(f"{port_name}: {data}")
+            self.insert_into_terminal(f"{port_name}: {data}")
 
     #===============================================================
     # send_command()
@@ -293,26 +319,83 @@ class window(QMainWindow):
     def send_command(self, command):
         # Check if port is still open.
         if not self.serial_port.isOpen():
-            self.QTextEdit_terminal_insert("GUI: No ports connected.\n")
+            self.insert_into_terminal("GUI: No ports connected.\n")
             return
 
         # Check if command is empty.
         if command == "":
-            self.QTextEdit_terminal_insert("GUI: Command is empty.\n")
+            self.insert_into_terminal("GUI: Command is empty.\n")
             return
         
         # Send command.
-        self.QTextEdit_terminal_insert(f"GUI: Sending command \"{command}\".\n")
+        self.insert_into_terminal(f"GUI: Sending command \"{command}\".\n")
         self.serial_port.write(command.encode("utf-8"))
 
     #===============================================================
-    # QTextEdit_terminal_insert()
+    # send_custom_command()
     #===============================================================
 
-    def QTextEdit_terminal_insert(self, text):
-        # Insert text.
-        self.QTextEdit_terminal.insertPlainText(text)
+    def send_custom_command(self, command):
+        # Check if port is still open.
+        if not self.serial_port.isOpen():
+            self.insert_into_terminal("GUI: No ports connected.\n")
+            return
 
-        # Auto-scroll.
-        if self.QCheckBox_autoscroll.isChecked():
-            self.QTextEdit_terminal.verticalScrollBar().setValue(self.QTextEdit_terminal.verticalScrollBar().maximum())
+        # Check if command is empty.
+        if command == "":
+            self.insert_into_terminal("GUI: Command is empty.\n")
+            return
+        
+        # Send command.
+        self.insert_into_terminal(f"GUI: Sending command \"{command}\".\n")
+        self.serial_port.write(command.encode("utf-8"))
+
+        # Clear custom command.
+        if self.QCheckBox_clear_on_send.isChecked():
+            self.QLineEdit_custom_command.clear()
+
+    #===============================================================
+    # insert_into_terminal()
+    #===============================================================
+
+    def insert_into_terminal(self, text):
+        # Save the current scrollbar positions.
+        vertical_scrollbar = self.QTextEdit_terminal.verticalScrollBar()
+        vertical_scrollbar_starting_position = vertical_scrollbar.value()
+        horizontal_scrollbar = self.QTextEdit_terminal.horizontalScrollBar()
+        horizontal_scrollbar_starting_position = horizontal_scrollbar.value()
+
+        # Move the cursor to the end and insert text.
+        self.QTextEdit_terminal.moveCursor(QTextCursor.MoveOperation.End)
+        self.QTextEdit_terminal.insertPlainText(text)
+        self.QTextEdit_terminal.moveCursor(QTextCursor.MoveOperation.End)
+
+        # Do auto-scroll.
+        if self.QCheckBox_auto_scroll.isChecked():
+            # Move the scrollbars to the bottom-left.
+            vertical_scrollbar.setValue(vertical_scrollbar.maximum())
+            horizontal_scrollbar.setValue(horizontal_scrollbar.minimum())
+        # Do not auto-scroll.
+        else:
+            # Restore the scrollbars to their starting positions.
+            vertical_scrollbar.setValue(vertical_scrollbar_starting_position)
+            horizontal_scrollbar.setValue(horizontal_scrollbar_starting_position)
+
+    #===============================================================
+    # clear_terminal()
+    #===============================================================
+
+    def clear_terminal(self, text):
+        self.QTextEdit_terminal.clear()
+
+    #===============================================================
+    # toggle_word_wrap()
+    #===============================================================
+    
+    def toggle_word_wrap(self):
+        # Do word wrap.
+        if self.QCheckBox_word_wrap.isChecked():
+            self.QTextEdit_terminal.setWordWrapMode(QTextOption.WrapMode.WordWrap)
+        # Do not word wrap.
+        else:
+            self.QTextEdit_terminal.setWordWrapMode(QTextOption.WrapMode.NoWrap)
