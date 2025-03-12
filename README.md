@@ -18,13 +18,13 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 ## Challenges, Lessons Learned, and Takeaways
 
-**Build system and workspace setup:** This can get complicated, especially when mixing build systems for C and Rust.
+**Mixing C and Rust:** This was attempted, but proved to be too difficult. The first step is to use the correct preprocessor derectives so that the compiled ABI for the C and Rust could are of the same format, which is easy enough. The second step of mixing C, Rust, and ESP build systems (CMake, Cargo, and ESP-IDF), linking libraries, and more, is the difficult part. There were too many erroneous and non-descriptive issues, so I was unable to get this to work. I want to attempt this again in the future.
 
 **Messaging format between GUI and microcontrollers:** This was kept simple, but I can imagine how this can become complicated to make complete and consistent in larger, more complex systems.
 
 **Hardware input debouncing:** Solved via software rather than via hardware with an RC circuit. This freed up breadboard space and allowed for wires to be used as “buttons”.
 
-**Development time and task management:** It is important to stay on track, know what steps are next, and know when to stop. I have gained a greater appreciation for (good) managers.
+**Development time and task management:** It is important to stay on track, know what steps are next, and know when to stop. I have gained a greater appreciation for (good) managers. Time spent was accurately tracked to be about 140 hours, or about 3.5 weeks of full-time work if at 40 hours per week.
 
 **Ready to learn more:** I am ready to learn from more experience engineers how to do things better, such as manage RTOSs and create GUIs.
 
@@ -41,9 +41,73 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 **Purpose and use:** Make the project do something specific. For example, control a pen plotter or a smart thermostat. Currently, the project is only a “framework” of sorts.
 
-## Pictures
+## Images
 
-1. Nice (maybe edited) showcase picture.
-2. Block diagram.
-3. GUI.
-4. ESP32s and breadboard.
+Below are the following images:
+1. **Cover image:** Shows the technologies used, the GUI, and an ESP32-C6 development board.
+2. **Block diagram.**
+3. **GUI.**
+4. **ESP32-C6s on a breadboard:** Shows the leader device's LED turning red, yellow, and green, and the follow device's LED turning white.
+
+### 1. Cover Image
+
+![Cover image.](<./Images/Cover Image.png>)
+
+### 2. Block Diagram
+
+![Block diagram.](<./Images/Block Diagram.png>)
+
+### 3. GUI
+
+![GUI.](<./Images/GUI.png>)
+
+### 4. ESP32-C6s on a Breadboard
+
+![ESP32-C6s.](<./Images/ESP32-C6s.png>)
+
+## References and Resources
+
+### ESP32-C6
+
+- [ESP32-C6: Getting Started](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/get-started/index.html>).
+- [ESP32-C6-DevKitC-1 v1.2](<https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html#user-guide-c6-devkitc-1-v1-2-board-front>).
+
+### FreeRTOS
+
+- [Espressif: FreeRTOS (IDF)](<https://docs.espressif.com/projects/esp-idf/en/latest/esp32c6/api-reference/system/freertos_idf.html>).
+- [FreeRTOS](<https://www.freertos.org/>).
+
+### UART
+
+- [Espressif: API Reference: UART](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/api-reference/peripherals/uart.html>).
+- [Espressif: Examples: UART](<https://github.com/espressif/esp-idf/tree/master/examples/peripherals/uart>).
+
+### Zigbee
+
+- [Espressif: Examples: Zigbee](<https://github.com/espressif/esp-idf/tree/master/examples/zigbee>).
+
+### PyQt6
+
+- [PyQt6 Documentation](<https://doc.qt.io/qt-6/>).
+
+### Rust
+
+**Documentation:**
+
+- [The Embedded Rust Book: A little Rust with your C](<https://docs.rust-embedded.org/book/interoperability/rust-with-c.html>).
+- [The Rust on ESP Book](<https://docs.esp-rs.org/book/introduction.html>).
+- [Mixed C and Rust ESP-IDF Example Program](<https://github.com/esp-rs/esp-idf-template/blob/master/README-cmake.md>).
+- [The Smallest #![no_std] Program](<https://docs.rust-embedded.org/embedonomicon/smallest-no-std.html>).
+- [Rust Support for Target Architectures](<https://rust-lang.github.io/rustup-components-history/riscv32imac-unknown-none-elf.html>).
+
+**Build system tools:**
+
+- [cbindgen](<https://github.com/mozilla/cbindgen>).
+- [Corrosion](<https://corrosion-rs.github.io/corrosion/introduction.html>).
+
+**Blogs:**
+
+- [Daniel Mangum: RISC-V Bytes: Rust Cross-Compilation](<https://danielmangum.com/posts/risc-v-bytes-rust-cross-compilation/>).
+- [The Embedded Rustacean: Rust FFI and cbindgen: Integrating Embedded Rust Code in C](<https://blog.theembeddedrustacean.com/rust-ffi-and-cbindgen-integrating-embedded-rust-code-in-c>).
+- [Manish Goregaokar: Integrating Rust and C++ in Firefox](<https://manishearth.github.io/blog/2021/02/22/integrating-rust-and-c-plus-plus-in-firefox/>).
+
