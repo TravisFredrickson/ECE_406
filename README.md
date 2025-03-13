@@ -4,14 +4,19 @@
 
 ## Description
 
-This project allows a user to control “internet of things” (IoT) devices via a desktop computer graphical user interface (GUI). The GUI was created using the GUI framework _PyQt6_ and features serial port configuration, sending of commands, and a terminal. The IoT devices are two _ESP32-C6_ microcontrollers; one is considered a “leader” and the other is considered a “follower”. The leader is connected to the GUI via a serial port and USB cable, and the follower is connected to the leader via the network protocol _Zigbee_. The IoT devices use the real-time operating system (RTOS) _FreeRTOS_.
+This project allows a user to control “internet of things” (IoT) devices via a desktop computer graphical user interface (GUI). The GUI was created using the GUI framework _PyQt6_ and features serial port configuration, sending of commands, and a terminal. The IoT devices are two _ESP32-C6-DevKitC-1_ microcontroller development boards; one is considered a “leader” and the other is considered a “follower”. The leader is connected to the GUI via a serial port and USB cable, and the follower is connected to the leader via the network protocol _Zigbee_. The IoT devices use the real-time operating system (RTOS) _FreeRTOS_.
 
 This project was created for the "ECE 406: Projects" class at Oregon State University with the purpose of learning new skills and being a portfolio project.
 
-## Installation
+## Set Up and Installation
 
-1. Get two "ESP32-C6-DevKitC-1" development boards, two USB-C cables, and a computer (preferably with Ubuntu).
-2. Follow [Espressif's ESP32-C6 "Get Started" instructions](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/get-started/index.html>). Get Visual Studio Code with the ESP-IDF extension.
+1. Get hardware.
+    1. Get two "ESP32-C6-DevKitC-1" development boards
+    2. Get two USB-C cables.
+    3. Get a computer (preferably with Ubuntu).
+2. Set up ESP-IDF.
+    1. Follow [Espressif's ESP32-C6 "Get Started" instructions](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/get-started/index.html>).
+    2. Get Visual Studio Code with the ESP-IDF extension.
 3. Set up the leader.
     1. Open the `ESP32-C6 Leader` directory in Visual Studio Code.
     2. Connect a ESP32-C6-DevKitC-1 to the computer.
@@ -29,13 +34,13 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
     4. Install Python libraries using `pip install -r python_requirements.txt`.
     5. Create an executable using `pyinstaller ./main.py --onefile --windowed --distpath ../ --name GUI_Executable`. This creates three items: `build`, `GUI_Executable`, and `GUI_Executable.spec`. `build` and `GUI_Executable.spec` can be safely deleted.
     6. The GUI executable has been created and can now be executed. Congratulations!
-6. Start GUI, leader, and follower.
-    1. Open GUI.
+6. Start the GUI, leader, and follower.
+    1. Open the GUI.
     2. Connect the leader to the computer.
     3. Refresh ports.
     4. Connect to newly available port (the leader) at 115200 baud rate.
-    5. Connect the follower to the computer.
-    6. You can now send commands via the buttons.
+    5. Connect the follower to a power source. The leader and follower should automatically connect. If not, cycle the power on each.
+    6. You can now send commands via the GUI buttons.
 7. You did it! Congratulations!
 8. ...
 9. Oh, did something not work? See [this](<https://en.wikipedia.org/wiki/Rubber_duck_debugging>) for troubleshooting.
@@ -64,6 +69,8 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 ## Future Improvements
 
+**ESP32-C6-DevKitC-1 Code:** Make leader and follower code the same and thus interchangable.
+
 **GUI:**
 - Consider using a different GUI framework; PyQt6 may not be the best option. For example, one issue with PyQt6 is that some styling is within the Python file and some is within the CSS file, which is not ideal. Alternative GUI framework options include LVGL, Qt QML, and Tauri. Alternatively, a website could be used.
 - Improve the GUI by adding color theme settings, controlling many individual IoT devices, and making it cross-platform (currently only for desktop computers).
@@ -78,10 +85,10 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 ## Images
 
 Below are the following images:
-1. **Cover image:** Shows the technologies used, the GUI, and an ESP32-C6 development board.
+1. **Cover image:** Shows the technologies used, the GUI, and an ESP32-C6-DevKitC-1.
 2. **Block diagram.**
 3. **GUI.**
-4. **ESP32-C6s on a breadboard:** Shows the leader device's LED turning red, yellow, and green, and the follow device's LED turning white.
+4. **ESP32-C6-DevKitC-1's on a breadboard:** Shows the leader device's LED turning red, yellow, and green, and the follow device's LED turning white.
 
 ### 1. Cover Image
 
@@ -95,16 +102,16 @@ Below are the following images:
 
 ![GUI.](<./Images/GUI.png>)
 
-### 4. ESP32-C6s on a Breadboard
+### 4. ESP32-C6-DevKitC-1's on a Breadboard
 
-![ESP32-C6s.](<./Images/ESP32-C6s.png>)
+![ESP32-C6-DevKitC-1's on a breadboard.](<./Images/ESP32-C6-DevKitC-1's on a Breadboard.png>)
 
 ## References and Resources
 
-### ESP32-C6
+### Espressif
 
 - [ESP32-C6: Get Started](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/get-started/index.html>).
-- [ESP32-C6-DevKitC-1 v1.2](<https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html#user-guide-c6-devkitc-1-v1-2-board-front>).
+- [ESP32-C6-DevKitC-1](<https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html#user-guide-c6-devkitc-1-v1-2-board-front>).
 
 ### FreeRTOS
 
@@ -122,9 +129,10 @@ Below are the following images:
 - [Espressif: Zigbee SDK Documentation](<https://docs.espressif.com/projects/esp-zigbee-sdk>).
 - [Espressif: Zigbee SDK Repository](<https://github.com/espressif/esp-zigbee-sdk>).
 
-### PyQt6
+### Python
 
 - [PyQt6 Documentation](<https://doc.qt.io/qt-6/>).
+- [PyInstaller Tutorial](<https://youtu.be/2X9rxzZbYqg?si=j0R_ymKh-65VNxRO>).
 
 ### Rust
 
