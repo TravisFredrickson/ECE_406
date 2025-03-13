@@ -1,3 +1,9 @@
+/*##############################################################
+ * FILE INFO
+ *############################################################*/
+
+/* This file has been modified from an example. */
+
 /*
  * SPDX-FileCopyrightText: 2021-2023 Espressif Systems (Shanghai) CO LTD
  *
@@ -35,18 +41,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*##############################################################
+ * INCLUDES
+ *############################################################*/
+
 #include "esp_log.h"
 #include "led_strip.h"
 #include "light_driver.h"
 
+/*##############################################################
+ * GLOBAL VARIABLES
+ *############################################################*/
+
 static led_strip_handle_t s_led_strip;
 static uint8_t s_red = 8, s_green = 8, s_blue = 8;
+
+/*##############################################################
+ * FUNCTIONS
+ *############################################################*/
+
+/*--------------------------------------------------------------
+ * light_driver_set_power()
+ *------------------------------------------------------------*/
 
 void light_driver_set_power(bool power)
 {
     ESP_ERROR_CHECK(led_strip_set_pixel(s_led_strip, 0, s_red * power, s_green * power, s_blue * power));
     ESP_ERROR_CHECK(led_strip_refresh(s_led_strip));
 }
+
+/*--------------------------------------------------------------
+ * light_driver_init()
+ *------------------------------------------------------------*/
 
 void light_driver_init(bool power)
 {

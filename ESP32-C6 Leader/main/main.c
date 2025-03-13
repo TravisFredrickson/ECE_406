@@ -3,7 +3,7 @@
  *############################################################*/
 
 /* Author: Travis Fredrickson.
- * Date: 2025-02-27.
+ * Date: 2025-03-13.
  * Description: Does something on an ESP32-C6-DevKitC-1-N8. */
 
 /*##############################################################
@@ -37,12 +37,6 @@
 #include "freertos/task.h"
 
 /*==============================================================
- * Button.
- *============================================================*/
-
-#include "./button/include/button.h"
-
-/*==============================================================
  * Zigbee.
  *============================================================*/
 
@@ -62,15 +56,6 @@
 #define RED_TASK_PRIORITY configMAX_PRIORITIES - 4
 #define YELLOW_TASK_PRIORITY configMAX_PRIORITIES - 5
 #define GREEN_TASK_PRIORITY configMAX_PRIORITIES - 6
-
-/*==============================================================
- * Button.
- *============================================================*/
-
-// #define BUTTON_CHECK_TASK_PRIORITY 10
-// #define BUTTON_RED_GPIO GPIO_NUM_6
-// #define BUTTON_YELLOW_GPIO GPIO_NUM_5
-// #define BUTTON_GREEN_GPIO GPIO_NUM_4
 
 /*==============================================================
  * LED strip.
@@ -124,13 +109,6 @@ static TaskHandle_t red_task_handle = NULL;
 static TaskHandle_t yellow_task_handle = NULL;
 static TaskHandle_t green_task_handle = NULL;
 
-/*==============================================================
- * Button.
- *============================================================*/
-
-// static button_event_t button_event;
-// static QueueHandle_t button_events;
-// static TaskHandle_t button_check_task_handle = NULL;
 
 /*==============================================================
  * LED strip.
@@ -149,13 +127,6 @@ static led_strip_t led_strip;
 static void print_chip_information(void);
 
 /*==============================================================
- * Button.
- *============================================================*/
-
-// static void button_configure(void);
-// static void button_check_task(void *pvParameter);
-
-/*==============================================================
  * LED strip.
  *============================================================*/
 
@@ -171,8 +142,6 @@ static void green_task(void *pvParameter);
 
 static void uart_configure(void);
 static void uart_rx_task(void *arg);
-// static void uart_tx_task(void *arg);
-// static int uart_send_data(const char *logName, const char *data);
 
 /*##############################################################
  * FUNCTIONS
@@ -337,50 +306,6 @@ static void green_task(void *pvParameter)
     /* It should never reach here. */
     vTaskDelete(NULL);
 }
-
-/*==============================================================
- * Button.
- *============================================================*/
-
-/*--------------------------------------------------------------
- * button_configure()
- *------------------------------------------------------------*/
-
-// static void button_configure(void)
-// {
-//     ESP_LOGI(TAG, "button_configure().");
-//     button_events = pulled_button_init(
-//         (PIN_BIT(BUTTON_GREEN_GPIO) | PIN_BIT(BUTTON_YELLOW_GPIO) | PIN_BIT(BUTTON_RED_GPIO)),
-//         GPIO_PULLUP_ONLY);
-// }
-
-/*--------------------------------------------------------------
- * button_check_task()
- *------------------------------------------------------------*/
-
-// static void button_check_task(void *pvParameter)
-// {
-//     for (;;)
-//     {
-//         if (xQueueReceive(button_events, &button_event, pdMS_TO_TICKS(1000)))
-//         {
-//             if ((button_event.pin == BUTTON_GREEN_GPIO) && (button_event.event == BUTTON_DOWN))
-//             {
-//                 vTaskResume(green_task_handle);
-//             }
-//             if ((button_event.pin == BUTTON_YELLOW_GPIO) && (button_event.event == BUTTON_DOWN))
-//             {
-//                 vTaskResume(yellow_task_handle);
-//             }
-//             if ((button_event.pin == BUTTON_RED_GPIO) && (button_event.event == BUTTON_DOWN))
-//             {
-//                 vTaskResume(red_task_handle);
-//             }
-//         }
-//         vTaskDelay(pdMS_TO_TICKS(10));
-//     }
-//     vTaskDelete(NULL);
-// }
 
 /*==============================================================
  * LED strip.
@@ -548,33 +473,6 @@ static void uart_rx_task(void *arg)
     vTaskDelete(NULL);
 }
 
-/*--------------------------------------------------------------
- * uart_tx_task()
- *------------------------------------------------------------*/
-
-// static void uart_tx_task(void *arg)
-// {
-//     static const char *UART_TX_TASK_TAG = "UART_TX_TASK";
-//     esp_log_level_set(UART_TX_TASK_TAG, ESP_LOG_INFO);
-//     for (;;)
-//     {
-//         uart_send_data(UART_TX_TASK_TAG, "Hello world.\n");
-//         vTaskDelay(pdMS_TO_TICKS(2000));
-//     }
-// }
-
-/*--------------------------------------------------------------
- * uart_send_data()
- *------------------------------------------------------------*/
-
-// static int uart_send_data(const char *logName, const char *data)
-// {
-//     const int len = strlen(data);
-//     const int txBytes = uart_write_bytes(UART_NUM_1, data, len);
-//     ESP_LOGI(logName, "Wrote %d bytes.", txBytes);
-//     return txBytes;
-// }
-
 /*##############################################################
  * MAIN
  *############################################################*/
@@ -583,19 +481,10 @@ void app_main(void)
 {
     /* Initalize and configure. */
     print_chip_information();
-    // button_configure();
     led_strip_configure();
     uart_configure();
     zigbee_configure();
 
-    /* Create tasks. */
-    // xTaskCreate(
-    //     &button_check_task,
-    //     "button_check_task",
-    //     TASK_STACK_DEPTH,
-    //     NULL,
-    //     BUTTON_CHECK_TASK_PRIORITY,
-    //     &button_check_task_handle);
     xTaskCreate(
         &red_task,
         "red_task",
@@ -624,13 +513,6 @@ void app_main(void)
         NULL,
         UART_RX_TASK_PRIORITY,
         NULL);
-    // xTaskCreate(
-    //     &uart_tx_task,
-    //     "uart_tx_task",
-    //     TASK_STACK_DEPTH,
-    //     NULL,
-    //     UART_TX_TASK_PRIORITY,
-    //     NULL);
 
     /* Turn the LED off. Something (maybe the "Zigbee Green Power
      * enable" configuration setting) turns it bright green for an

@@ -1,3 +1,9 @@
+/*##############################################################
+ * FILE INFO
+ *############################################################*/
+
+/* This file has been modified from an example. */
+
 /*
  * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
  *
@@ -15,12 +21,21 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
+
+    /*##############################################################
+     * INCLUDES
+     *############################################################*/
 
 #include "esp_err.h"
 #include "esp_check.h"
 #include "esp_zigbee_core.h"
+
+/*##############################################################
+ * DEFINES
+ *############################################################*/
 
 /*! Maximum length of ManufacturerName string field */
 #define ESP_ZB_ZCL_CLUSTER_ID_BASIC_MANUFACTURER_NAME_MAX_LEN 32
@@ -28,11 +43,24 @@ extern "C" {
 /*! Maximum length of ModelIdentifier string field */
 #define ESP_ZB_ZCL_CLUSTER_ID_BASIC_MODEL_IDENTIFIER_MAX_LEN 32
 
+/*##############################################################
+ * TYPEDEFS
+ *############################################################*/
+
 /** optional basic manufacturer information */
-typedef struct zcl_basic_manufacturer_info_s {
+typedef struct zcl_basic_manufacturer_info_s
+{
     char *manufacturer_name;
     char *model_identifier;
 } zcl_basic_manufacturer_info_t;
+
+/*##############################################################
+ * FUNCTION PROTOTYPES
+ *############################################################*/
+
+/*--------------------------------------------------------------
+* esp_zcl_utility_add_ep_basic_manufacturer_info()
+*------------------------------------------------------------*/
 
 /**
  * @brief Adds manufacturer information to the ZCL basic cluster of endpoint

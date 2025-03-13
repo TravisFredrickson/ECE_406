@@ -71,50 +71,54 @@ extern "C"
 
 #define PAIR_SIZE(TYPE_STR_PAIR) (sizeof(TYPE_STR_PAIR) / sizeof(TYPE_STR_PAIR[0]))
 
-    /*##############################################################
-     * TYPEDEFS
-     *############################################################*/
+/*##############################################################
+ * TYPEDEFS
+ *############################################################*/
 
-    typedef enum
-    {
-        SWITCH_IDLE,
-        SWITCH_PRESS_ARMED,
-        SWITCH_PRESS_DETECTED,
-        SWITCH_PRESSED,
-        SWITCH_RELEASE_DETECTED,
-    } switch_state_t;
+typedef enum
+{
+    SWITCH_IDLE,
+    SWITCH_PRESS_ARMED,
+    SWITCH_PRESS_DETECTED,
+    SWITCH_PRESSED,
+    SWITCH_RELEASE_DETECTED,
+} switch_state_t;
 
-    typedef enum
-    {
-        SWITCH_ON_CONTROL,
-        SWITCH_OFF_CONTROL,
-        SWITCH_ONOFF_TOGGLE_CONTROL,
-        SWITCH_LEVEL_UP_CONTROL,
-        SWITCH_LEVEL_DOWN_CONTROL,
-        SWITCH_LEVEL_CYCLE_CONTROL,
-        SWITCH_COLOR_CONTROL,
-    } switch_func_t;
+typedef enum
+{
+    SWITCH_ON_CONTROL,
+    SWITCH_OFF_CONTROL,
+    SWITCH_ONOFF_TOGGLE_CONTROL,
+    SWITCH_LEVEL_UP_CONTROL,
+    SWITCH_LEVEL_DOWN_CONTROL,
+    SWITCH_LEVEL_CYCLE_CONTROL,
+    SWITCH_COLOR_CONTROL,
+} switch_func_t;
 
-    typedef struct
-    {
-        uint32_t pin;
-        switch_func_t func;
-    } switch_func_pair_t;
+typedef struct
+{
+    uint32_t pin;
+    switch_func_t func;
+} switch_func_pair_t;
 
-    typedef void (*esp_switch_callback_t)(switch_func_pair_t *param);
+typedef void (*esp_switch_callback_t)(switch_func_pair_t *param);
 
-    /*##############################################################
-     * FUNCTION PROTOTYPES
-     *############################################################*/
+/*##############################################################
+ * FUNCTION PROTOTYPES
+ *############################################################*/
 
-    /**
-     * @brief init function for switch and callback setup
-     *
-     * @param button_func_pair      pointer of the button pair.
-     * @param button_num            number of button pair.
-     * @param cb                    callback pointer.
-     */
-    bool switch_driver_init(switch_func_pair_t *button_func_pair, uint8_t button_num, esp_switch_callback_t cb);
+/*--------------------------------------------------------------
+ * switch_driver_init()
+ *------------------------------------------------------------*/
+
+/**
+ * @brief init function for switch and callback setup
+ *
+ * @param button_func_pair      pointer of the button pair.
+ * @param button_num            number of button pair.
+ * @param cb                    callback pointer.
+ */
+bool switch_driver_init(switch_func_pair_t *button_func_pair, uint8_t button_num, esp_switch_callback_t cb);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -1,3 +1,9 @@
+/*##############################################################
+ * FILE INFO
+ *############################################################*/
+
+/* This file has been modified from an example. */
+
 /*
  * SPDX-FileCopyrightText: 2024 Espressif Systems (Shanghai) CO LTD
  *
@@ -11,13 +17,30 @@
  * software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  * CONDITIONS OF ANY KIND, either express or implied.
  */
+
+/*##############################################################
+ * INCLUDES
+ *############################################################*/
+
 #include "esp_check.h"
 #include "stdio.h"
 #include "string.h"
 #include "zcl_utility.h"
 #include <stdint.h>
 
+/*##############################################################
+ * CONSTANTS
+ *############################################################*/
+
 static const char *TAG = "ZCL_UTILITY";
+
+/*##############################################################
+ * FUNCTIONS
+ *############################################################*/
+
+/*--------------------------------------------------------------
+ * esp_zcl_utility_add_ep_basic_manufacturer_info()
+ *------------------------------------------------------------*/
 
 esp_err_t esp_zcl_utility_add_ep_basic_manufacturer_info(esp_zb_ep_list_t *ep_list, uint8_t endpoint_id, zcl_basic_manufacturer_info_t *info)
 {
