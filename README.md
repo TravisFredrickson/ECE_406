@@ -4,7 +4,7 @@
 
 ## Description
 
-This project allows a user to control “internet of things” (IoT) devices via a desktop computer graphical user interface (GUI). The GUI was created using the GUI framework _PyQt6_ and features serial port configuration, sending of commands, and a terminal. The IoT devices are two _ESP32-C6-DevKitC-1_ microcontroller development boards; one is considered a “leader” and the other is considered a “follower”. The leader is connected to the GUI via a serial port and USB cable, and the follower is connected to the leader via the network protocol _Zigbee_. The IoT devices use the real-time operating system (RTOS) _FreeRTOS_.
+This project allows a user to control “internet of things” (IoT) devices via a desktop computer graphical user interface (GUI). The GUI was created using the Python GUI framework _PyQt6_ and features serial port configuration, sending of commands, and a terminal. The IoT devices are two _ESP32-C6-DevKitC-1_ microcontroller development boards; one is considered a “leader” and the other is considered a “follower”. The leader is connected to the GUI via a serial port and USB cable, and the follower is connected to the leader via the network protocol _Zigbee_. The IoT devices use _C_, _Rust_, the real-time operating system (RTOS) _FreeRTOS_.
 
 This project was created for the "ECE 406: Projects" class at Oregon State University with the purpose of learning new skills and being a portfolio project.
 
@@ -14,9 +14,10 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
     1. Get two "ESP32-C6-DevKitC-1" development boards
     2. Get two USB-C cables.
     3. Get a computer (preferably with Ubuntu).
-2. Set up ESP-IDF.
+2. Set up ESP-IDF and the Rust toolchain.
     1. Follow [Espressif's ESP32-C6 "Get Started" instructions](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/get-started/index.html>).
     2. Get Visual Studio Code with the ESP-IDF extension.
+    3. Follow the Rust toolchain instructions found at [Mixed C and Rust ESP-IDF Example Program](<https://github.com/esp-rs/esp-idf-template/blob/master/README-cmake.md>).
 3. Set up the leader.
     1. Open the `ESP32-C6 Leader` directory in Visual Studio Code.
     2. Connect a ESP32-C6-DevKitC-1 to the computer.
@@ -47,17 +48,19 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 ## Design Choice Rational
 
-**GUI:** GUIs are important because they are used everywhere and are accessible to non-tech-savvy users. PyQt6 was chosen because it is light-weight, free, and the engineering team (just me, [@TravisFredrickson](https://www.github.com/TravisFredrickson)) had previous experience using it.
+**ESP32-C6:** The ESP32-C6 was chosen as the microcontroller because ESPs are popular, it has many network peripherals (2.4 GHz Wi-Fi 6, Bluetooth 5 (LE), Zigbee, and Thread) and a cheap (~$10) development board (ESP32-C6-DevKitC-1) that fits well on the common BB830 breadboard.
+
+**C and Rust:** C and Rust were both used for the IoT device programs. C is the main language because it is by far the most common embedded language. Rust is a supplemental language and was included because it is newer and has potential advantages, but it is not mature enough yet for many projects to solely use it. Mixing the two languages was a challenge.
 
 **RTOS:** RTOSs are important for safety critical applications, for organizing code into separate tasks, and because they are common in industry. FreeRTOS was chosen because it is popular and (you’ll never guess this) free.
 
-**ESP32-C6:** The ESP32-C6 was chosen as the microcontroller because ESPs are popular, it has many network peripherals (2.4 GHz Wi-Fi 6, Bluetooth 5 (LE), Zigbee, and Thread) and a cheap (~$10) development board (ESP32-C6-DevKitC-1) that fits well on the common BB830 breadboard.
+**GUI:** GUIs are important because they are used everywhere and are accessible to non-tech-savvy users. PyQt6 was chosen because it is light-weight, free, and the engineering team (just me, [@TravisFredrickson](https://www.github.com/TravisFredrickson)) had previous experience using it.
 
 **Network:** Zigbee was chosen as the communication method and network protocol between microcontroller devices because it seemed like the simplest method available that easily allowed many devices on the network.
 
 ## Challenges, Lessons Learned, and Takeaways
 
-**Mixing C and Rust:** This was attempted, but proved to be too difficult. The first step is to use the correct preprocessor derectives so that the compiled ABI for the C and Rust could are of the same format, which is easy enough. The second step of mixing C, Rust, and ESP build systems (CMake, Cargo, and ESP-IDF), linking libraries, and more, is the difficult part. There were too many erroneous and non-descriptive issues, so I was unable to get this to work. I want to attempt this again in the future.
+**Mixing C and Rust:** This was a significant challenge. The first step is to use the correct preprocessor derectives so that the compiled ABI for the C and Rust could are of the same format, which is easy enough. The second step of mixing C, Rust, and ESP build systems (CMake, Cargo, and ESP-IDF), linking libraries, and more, is the difficult part; e.g., there were some erroneous and non-descriptive issues.
 
 **Messaging format between GUI and microcontrollers:** This was kept simple, but I can imagine how this can become complicated to make complete and consistent in larger, more complex systems.
 
@@ -136,10 +139,10 @@ Below are the following images:
 
 ### Rust
 
-**Documentation:**
+**Documentation and examples:**
+- [Mixed C and Rust ESP-IDF Example Program](<https://github.com/esp-rs/esp-idf-template/blob/master/README-cmake.md>).
 - [The Embedded Rust Book: A little Rust with your C](<https://docs.rust-embedded.org/book/interoperability/rust-with-c.html>).
 - [The Rust on ESP Book](<https://docs.esp-rs.org/book/introduction.html>).
-- [Mixed C and Rust ESP-IDF Example Program](<https://github.com/esp-rs/esp-idf-template/blob/master/README-cmake.md>).
 - [The Smallest #![no_std] Program](<https://docs.rust-embedded.org/embedonomicon/smallest-no-std.html>).
 - [Rust Support for Target Architectures](<https://rust-lang.github.io/rustup-components-history/riscv32imac-unknown-none-elf.html>).
 

@@ -73,6 +73,12 @@
 #define UART_TX_PIN GPIO_NUM_4
 #define UART_TX_TASK_PRIORITY configMAX_PRIORITIES - 2
 
+/*==============================================================
+ * Rust.
+ *============================================================*/
+
+#define RUST_TASK_PRIORITY configMAX_PRIORITIES - 7
+
 /*##############################################################
  * TYPEDEFS
  *############################################################*/
@@ -109,12 +115,17 @@ static TaskHandle_t red_task_handle = NULL;
 static TaskHandle_t yellow_task_handle = NULL;
 static TaskHandle_t green_task_handle = NULL;
 
-
 /*==============================================================
  * LED strip.
  *============================================================*/
 
 static led_strip_t led_strip;
+
+/*==============================================================
+ * Rust.
+ *============================================================*/
+
+static TaskHandle_t rust_task_handle = NULL;
 
 /*##############################################################
  * FUNCTION PROTOTYPES
@@ -142,6 +153,14 @@ static void green_task(void *pvParameter);
 
 static void uart_configure(void);
 static void uart_rx_task(void *arg);
+
+/*==============================================================
+ * Rust.
+ *============================================================*/
+
+static void rust_task(void *pvParameter);
+extern int hello_from_rust(void);
+extern int rust_main(void);
 
 /*##############################################################
  * FUNCTIONS
@@ -261,7 +280,7 @@ static void yellow_task(void *pvParameter)
         /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
-    
+
     /* It should never reach here. */
     vTaskDelete(NULL);
 }
@@ -302,7 +321,7 @@ static void green_task(void *pvParameter)
         /* Wait for task to be called via vTaskResume(). */
         vTaskSuspend(NULL);
     }
-    
+
     /* It should never reach here. */
     vTaskDelete(NULL);
 }
@@ -461,6 +480,10 @@ static void uart_rx_task(void *arg)
             {
                 follower_toggle_led();
             }
+            else if (strcmp(data_string, "leader_rust_task") == 0)
+            {
+                vTaskResume(rust_task_handle);
+            }
             else
             {
                 ESP_LOGE(UART_RX_TASK_TAG, "Error: Did not understand command.");
@@ -470,6 +493,40 @@ static void uart_rx_task(void *arg)
 
     /* It should never reach here. */
     free(data);
+    vTaskDelete(NULL);
+}
+
+/*==============================================================
+ * Rust.
+ *============================================================*/
+
+/*--------------------------------------------------------------
+ * rust_task()
+ *------------------------------------------------------------*/
+
+static void rust_task(void *pvParameter)
+{
+    /* Wait for task to be called via vTaskResume(). */
+    vTaskSuspend(NULL);
+
+    /* Loop forever. */
+    for (;;)
+    {
+        /* Do something from Rust. */
+        hello_from_rust();
+
+        /* Visually indicate this task ran. */
+        if (led_strip.state != BLUE)
+        {
+            led_strip.state = BLUE;
+            led_strip_update();
+        }
+
+        /* Wait for task to be called via vTaskResume(). */
+        vTaskSuspend(NULL);
+    }
+
+    /* It should never reach here. */
     vTaskDelete(NULL);
 }
 
@@ -513,6 +570,13 @@ void app_main(void)
         NULL,
         UART_RX_TASK_PRIORITY,
         NULL);
+    xTaskCreate(
+        &rust_task,
+        "rust_task",
+        TASK_STACK_DEPTH,
+        NULL,
+        RUST_TASK_PRIORITY,
+        &rust_task_handle);
 
     /* Turn the LED off. Something (maybe the "Zigbee Green Power
      * enable" configuration setting) turns it bright green for an
@@ -520,4 +584,9 @@ void app_main(void)
      * briefly turns green, then turns off. */
     led_strip.state = OFF;
     led_strip_clear(led_strip.handle);
+
+    /* Rust. */
+    ESP_LOGI(TAG, "Hello world from C's `app_main()`!");
+    int result = rust_main();
+    ESP_LOGI(TAG, "Rust's `app_main()` returned `%d`.", result);
 }
