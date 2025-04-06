@@ -108,7 +108,7 @@ Shows the arrangement of and the connections between parts of the system.
 
 Shows the GUI.
 
-!](<./Images/GUI.png>)
+![](<./Images/GUI.png>)
 
 ### 4. ESP32-C6's
 
