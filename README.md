@@ -4,14 +4,18 @@
 
 ## Description
 
-This project allows a user to control “internet of things” (IoT) devices via a desktop computer graphical user interface (GUI). The GUI was created using the Python GUI framework _PyQt6_ and features serial port configuration, sending of commands, and a terminal. The IoT devices are two _ESP32-C6-DevKitC-1_ microcontroller development boards; one is considered a “leader” and the other is considered a “follower”. The leader is connected to the GUI via a serial port and USB cable, and the follower is connected to the leader via the network protocol _Zigbee_. The IoT devices use _C_, _Rust_, the real-time operating system (RTOS) _FreeRTOS_.
+This project allows a user to control two “Internet of Things” (IoT) devices — designated as a “leader” and a “follower” — via a desktop computer graphical user interface (GUI).
 
-This project was created for the "ECE 406: Projects" class at Oregon State University with the purpose of learning new skills and being a portfolio project.
+The IoT devices are two _ESP32-C6-DevKitC-1_ microcontroller development boards. The IoT devices use _C_, _Rust_, the real-time operating system (RTOS) _FreeRTOS_, and the network protocol _Zigbee_. The leader is connected to the GUI via a serial port and USB cable, while the follower is connected to the leader via Zigbee. The GUI was created using the Python GUI framework _PyQt6_ and features serial port configuration, sending of commands, and a terminal.
+
+The project allows several tasks to be initiated via the GUI. On the leader device, the "red," "yellow," "green," and "Rust" tasks set the onboard LED to red, yellow, green, and blue, respectively. The follower device supports a "toggle LED" task that switches its LED to white. These tasks demonstrate several key accomplishments. First, the red, yellow, and green tasks are assigned different priority levels to demonstrate task preemption, a core feature of FreeRTOS. Second, the "Rust" task highlights interoperability between C and Rust, demonstrating how both languages can coexist within a system — leveraging C’s maturity and Rust’s modernity. Third, the "toggle LED" task demonstrates Zigbee communication between the devices. Finally, the GUI adds a layer of polish and usability that elevates the project from a technical demo to a well-rounded, professional application.
+
+The project was created for the "ECE 406: Projects" class at Oregon State University with the purpose of learning new skills and being a portfolio project.
 
 ## Set Up and Installation
 
 1. Get hardware.
-    1. Get two "ESP32-C6-DevKitC-1" development boards
+    1. Get two "ESP32-C6-DevKitC-1" development boards.
     2. Get two USB-C cables.
     3. Get a computer (preferably with Ubuntu).
 2. Set up ESP-IDF and the Rust toolchain.
@@ -20,12 +24,13 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
     3. Follow the Rust toolchain instructions found at [Mixed C and Rust ESP-IDF Example Program](<https://github.com/esp-rs/esp-idf-template/blob/master/README-cmake.md>).
 3. Set up the leader.
     1. Open the `ESP32-C6 Leader` directory in Visual Studio Code.
-    2. Connect a ESP32-C6-DevKitC-1 to the computer.
+    2. Connect an ESP32-C6-DevKitC-1 to the computer.
     3. Configure ESP-IDF for ESP32-C6 target, UART flash method, and the correct port.
+        - Note: The [CP210x USB to UART Bridge VCP Drivers](<https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers>) may be needed.
     4. Build and flash.
 4. Set up the follower.
     1. Open the `ESP32-C6 Follower` directory in Visual Studio Code.
-    2. Connect a ESP32-C6-DevKitC-1 to the computer.
+    2. Connect an ESP32-C6-DevKitC-1 to the computer.
     3. Configure ESP-IDF for ESP32-C6 target, UART flash method, and the correct port.
     4. Build and flash.
 5. Set up the GUI.
@@ -60,7 +65,7 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 ## Challenges, Lessons Learned, and Takeaways
 
-**Mixing C and Rust:** This was a significant challenge. The first step is to use the correct preprocessor derectives so that the compiled ABI for the C and Rust could are of the same format, which is easy enough. The second step of mixing C, Rust, and ESP build systems (CMake, Cargo, and ESP-IDF), linking libraries, and more, is the difficult part; e.g., there were some erroneous and non-descriptive issues.
+**Mixing C and Rust:** This was a significant challenge. The first step is to use the correct preprocessor directives so that the compiled ABI for the C and Rust could are of the same format, which is easy enough. The second step of mixing C, Rust, and ESP build systems (CMake, Cargo, and ESP-IDF), linking libraries, and more, is the difficult part; e.g., there were some erroneous and non-descriptive issues.
 
 **Messaging format between GUI and microcontrollers:** This was kept simple, but I can imagine how this can become complicated to make complete and consistent in larger, more complex systems.
 
@@ -72,7 +77,7 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 ## Future Improvements
 
-**ESP32-C6-DevKitC-1 Code:** Make leader and follower code the same and thus interchangable.
+**ESP32-C6-DevKitC-1 Code:** Make leader and follower code the same and thus interchangeable.
 
 **GUI:**
 - Consider using a different GUI framework; PyQt6 may not be the best option. For example, one issue with PyQt6 is that some styling is within the Python file and some is within the CSS file, which is not ideal. Alternative GUI framework options include LVGL, Qt QML, and Tauri. Alternatively, a website could be used.
@@ -87,34 +92,37 @@ This project was created for the "ECE 406: Projects" class at Oregon State Unive
 
 ## Images
 
-Below are the following images:
-1. **Cover image:** Shows the technologies used, the GUI, and an ESP32-C6-DevKitC-1.
-2. **Block diagram.**
-3. **GUI.**
-4. **ESP32-C6-DevKitC-1's on a breadboard:** Shows the leader device's LED turning red, yellow, and green, and the follow device's LED turning white.
-
 ### 1. Cover Image
 
-![Cover image.](<./Images/Cover Image.png>)
+Shows the technologies used, the GUI, and an ESP32-C6-DevKitC-1.
+
+![](<./Images/Cover Image.png>)
 
 ### 2. Block Diagram
 
-![Block diagram.](<./Images/Block Diagram.png>)
+Shows the arrangement of and the connections between parts of the system.
+
+![](<./Images/Block Diagram.png>)
 
 ### 3. GUI
 
-![GUI.](<./Images/GUI.png>)
+Shows the GUI.
 
-### 4. ESP32-C6-DevKitC-1's on a Breadboard
+!](<./Images/GUI.png>)
 
-![ESP32-C6-DevKitC-1's on a breadboard.](<./Images/ESP32-C6-DevKitC-1's on a Breadboard.png>)
+### 4. ESP32-C6's
+
+Shows the leader's LED turning red, yellow, and green, and the follower's LED turning white.
+
+![](<./Images/ESP32-C6's.png>)
 
 ## References and Resources
 
-### Espressif
+### General
 
 - [ESP32-C6: Get Started](<https://docs.espressif.com/projects/esp-idf/en/v5.2.5/esp32c6/get-started/index.html>).
 - [ESP32-C6-DevKitC-1](<https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c6/esp32-c6-devkitc-1/user_guide.html#user-guide-c6-devkitc-1-v1-2-board-front>).
+- [CP210x USB to UART Bridge VCP Drivers](<https://www.silabs.com/developer-tools/usb-to-uart-bridge-vcp-drivers>).
 
 ### FreeRTOS
 
